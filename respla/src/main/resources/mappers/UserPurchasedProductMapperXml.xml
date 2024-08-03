@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.res.pla.mapper.UserPurchasedProductMapper">
+  
+ 	<select id="selectAllUsableUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO" >  <!-- ID기준 사용가능한 모든 상품 -->
+	        SELECT * FROM userpurchasedproduct WHERE id = #{id} and usable = true
+	</select>
+        		    		
+    <select id="selectAllUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID기준 모든 구매 상품 -->
+	        SELECT * FROM userpurchasedproduct where id = #{id}
+    </select>
+    
+    <select id="selectAfterStartDateUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID,날짜 기준 모든 구매 상품 -->
+	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime};
+    </select>
+    
+    <select id="selectInUsedUppById" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- ID기준 사용중인 상품 1개 -->
+	        SELECT * FROM userpurchasedproduct WHERE id = #{id} and inused = true
+    </select>
+    
+     <select id="selectUppByUppcode" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- uppcode 기준 상품 1개 -->
+	        SELECT * FROM userpurchasedproduct WHERE uppcode = #{uppcode}
+    </select>
+    
+    <update id="convertInUsed">
+	        update userpurchasedproduct set inused = #{inused} where id = #{id} and uppcode =#{uppcode}
+    </update>
+    
+    <update id="convertUsable">
+	        update userpurchasedproduct set usable = #{usable} where id = #{id} and uppcode =#{uppcode}
+    </update>
+    
+    <update id="RealTimeUpdateUppTime">
+	        update userpurchasedproduct 
+	        set usedtime = usedtime + 1 , availabletime = availabletime - 1
+	        where id = #{id} and uppcode = #{uppcode}
+    </update>
+    
+    <update id="RealTimeUpdateUppDay">
+	        update userpurchasedproduct 
+	        set usedday = usedday + 1 , availableday = availableday - 1
+	        where id = #{id} and uppcode = #{uppcode}
+    </update>
+    
+    
+	<select id="selectAllUpps" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+	        SELECT * FROM userpurchasedproduct
+	</select>
+	
+	
+	
+	
+    
+    
+    
+  
+  </mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.res.pla.mapper.UserMapper">
+
+    <select id="selectUser" resultType="com.res.pla.domain.UserDTO" >
+        SELECT * FROM user WHERE id= #{id}
+    </select>
+    
+    <update id="checkInCurrentUse">
+        update user set currentuse = true where id=#{id}
+    </update>
+    
+    <update id="checkOutCurrentUse">
+        update user set currentuse = false where id=#{id}
+    </update>
+
+    <select id="selectAllUsers" resultType="com.res.pla.domain.UserDTO">
+        SELECT * FROM user
+    </select>
+    
+
+</mapper>

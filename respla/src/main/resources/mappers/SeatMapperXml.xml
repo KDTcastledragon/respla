@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.res.pla.mapper.SeatMapper">
+
+	<select id="presentAllSeats" resultType="com.res.pla.domain.SeatDTO">
+        SELECT * FROM seatlist
+    </select>
+    
+    <update id="checkInSeat" >
+        update seatlist set occupied = true, id = #{id} , uppcode = #{uppcode} where seatnum = #{seatnum}
+    </update>
+    
+    <update id="checkOutSeat" >
+        update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{usedSeatnum}
+    </update>
+    
+    <update id="moveSeat" >
+        update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{seatnum}
+    </update>
+    
+    <select id="selectSeatById" resultType="com.res.pla.domain.SeatDTO" >
+        SELECT * FROM seatlist WHERE id = #{id}
+    </select>
+
+    <select id="selectSeat" resultType="com.res.pla.domain.SeatDTO" >
+        SELECT * FROM seatlist WHERE seatnum = #{seatnum}
+    </select>
+
+    
+    
+    
+
+</mapper>
