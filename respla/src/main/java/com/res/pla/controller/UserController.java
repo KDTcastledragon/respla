@@ -61,13 +61,14 @@ public class UserController {
 	@PostMapping("/loginedUser")
 	public ResponseEntity<?> loginedUser(@RequestBody Map<String, String> idData) {
 		try {
-			//			log.info("loginedUser_idData 조회 : " + idData);
+			log.info("loginedUser_idData 조회 : " + idData);
 
 			String getedId = idData.get("id");
 
 			boolean isCurrentUse = userservice.selectUser(getedId).isCurrentuse();
 
-			UserPurchasedProductDTO inUsedUppDto = uppservice.selectInUsedUppById(getedId);   // null debugging
+			log.info("시발 어디야" + getedId + isCurrentUse);
+			UserPurchasedProductDTO inUsedUppDto = (uppservice.selectInUsedUppOnlyThing(getedId) != null) ? uppservice.selectInUsedUppOnlyThing(getedId) : null;   // null debugging
 
 			log.info("loginedUser_inUsedUppDto 조회 : " + inUsedUppDto);
 

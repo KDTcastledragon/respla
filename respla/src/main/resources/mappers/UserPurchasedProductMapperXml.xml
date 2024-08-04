@@ -14,12 +14,12 @@
     </select>
     
     <select id="selectAfterStartDateUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID,날짜 기준 모든 구매 상품 -->
-	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime};
+	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime}
     </select>
     
-    <select id="selectInUsedUppById" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- ID기준 사용중인 상품 1개 -->
-	        SELECT * FROM userpurchasedproduct WHERE id = #{id} and inused = true
-    </select>
+    <select id="selectInUsedUppOnlyThing" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+    		SELECT * FROM userpurchasedproduct WHERE id = #{id} AND inused = true
+	</select>
     
      <select id="selectUppByUppcode" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- uppcode 기준 상품 1개 -->
 	        SELECT * FROM userpurchasedproduct WHERE uppcode = #{uppcode}

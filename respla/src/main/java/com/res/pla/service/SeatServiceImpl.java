@@ -11,8 +11,8 @@ import com.res.pla.mapper.SeatMapper;
 
 @Service
 @Transactional
-public class SeatServiceImpl implements SeatService  {
-	
+public class SeatServiceImpl implements SeatService {
+
 	@Autowired
 	SeatMapper seatmapper;
 
@@ -30,27 +30,24 @@ public class SeatServiceImpl implements SeatService  {
 	@Override
 	public boolean checkOutSeat(int usedSeatnum, String id, String usedUppcode) {
 		int updatedrows = seatmapper.checkOutSeat(usedSeatnum, id, usedUppcode);
-		return updatedrows >0;
+		return updatedrows > 0;
 	}
 
 	@Override
 	public boolean moveSeat(int usedseatnum, String id, String useduppcode) {
 		int updatedrows = seatmapper.moveSeat(usedseatnum, id, useduppcode);
-		return updatedrows >0;
+		return updatedrows > 0;
 	}
-	
+
 	@Override
 	public SeatDTO selectSeatById(String id) {
 		SeatDTO usedSeat = seatmapper.selectSeatById(id);
 		return usedSeat;
 	}
-	
 
 	@Override
 	public SeatDTO selectSeat(int seatnum) {
 		return seatmapper.selectSeat(seatnum);
 	}
-
-	
 
 }

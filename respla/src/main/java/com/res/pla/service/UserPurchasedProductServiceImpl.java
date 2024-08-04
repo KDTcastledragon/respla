@@ -32,10 +32,8 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	@Autowired
 	SeatMapper seatmapper;
 
-	ProductService productservice;
-	UserPurchasedProductService uppservice;
-	UserService userservice;
-	SeatService seatservice;
+	//	@Autowired
+	//	SeatService seatservice;
 
 	@Autowired
 	private TaskScheduler dayTaskScheduler;
@@ -60,8 +58,8 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	}
 
 	@Override
-	public UserPurchasedProductDTO selectInUsedUppById(String id) {
-		return uppmapper.selectInUsedUppById(id);
+	public UserPurchasedProductDTO selectInUsedUppOnlyThing(String id) {
+		return uppmapper.selectInUsedUppOnlyThing(id);
 	}
 
 	@Override
@@ -84,9 +82,9 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	@Override
 	public boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime, int dayValuePeriod) {
 		List<UserPurchasedProductDTO> uppList = selectAfterStartDateUppsById(id, startDateTime);           // 지정시작날짜보다 후일인 상품목록들(전체를 불러오면 너무 많다.)
-		UserPurchasedProductDTO usedUpp = selectInUsedUppById(id);                                         // 현재 사용중인 상품(전체를 불러오면 너무 많다.)
+		UserPurchasedProductDTO usedUpp = selectInUsedUppOnlyThing(id);                                         // 현재 사용중인 상품(전체를 불러오면 너무 많다.)
 
-		log.info("ServiceImpl 날짜충돌검사 upp / List : " + usedUpp.toString() + " / " + uppList.toString());
+		//		log.info("ServiceImpl 날짜충돌검사 upp / List : " + usedUpp.toString() + " / " + uppList.toString());
 
 		//==[1. 기간권 , 고정석 상품을 사용중일 때 ]=================================================================		
 		if (usedUpp != null && (usedUpp.getPtype().equals("d") || usedUpp.getPtype().equals("f"))) {
@@ -135,7 +133,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 
 	@Override
 	public void calculateUppInUsedTime(String id, String uppcode) {
-		UserPurchasedProductDTO usedUppDto = uppmapper.selectInUsedUppById(id);
+		UserPurchasedProductDTO usedUppDto = uppmapper.selectUppByUppcode(uppcode);
 
 		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
 
@@ -144,7 +142,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 			log.info("scheduleAtFixedRate usedUppDto.getPtype() : " + usedUppDto.getPtype().toString());
 
 			calculateTimeScheduler = scheduler.scheduleAtFixedRate(() -> {
-				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppById(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
+				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppOnlyThing(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
 
 				if (currentUppDto.getAvailabletime() >= 1) { // 남은 시간이 존재할 경우에만.
 
@@ -181,10 +179,15 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 
 			dayTaskScheduler.schedule(() -> {
 
-				UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectInUsedUppById(id);       // 현재 '사용중'인 상품
+				log.info("예약구매 기간권 스케줄러 작동 시작.");
+
+				UserPurchasedProductDTO alreadyUsedUpp = uppmapper.selectInUsedUppOnlyThing(id);       // 현재 '사용중'인 상품
+				log.info("alreadyUsedUpp가 과연 null일까요?? 시발꺼?" + alreadyUsedUpp);
 
 				if ((alreadyUsedUpp.getPtype().equals("m"))) {
-					int usedSeatNum = seatservice.selectSeatById(id).getSeatnum();     // 사용중인 좌석 번호.
+					log.info("시간권 사용중일 경우, 예약구매 기간권으로 변경 후 계산 준비 시작");
+
+					int usedSeatNum = seatmapper.selectSeatById(id).getSeatnum();     // 사용중인 좌석 번호.
 					String alreadyUsedUppcode = alreadyUsedUpp.getUppcode();		   // 사용중인 시간권 상품의 uppcode.
 
 					seatmapper.checkOutSeat(usedSeatNum, id, alreadyUsedUppcode);      // 시간권으로 사용중인 좌석 체크아웃.
@@ -217,7 +220,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 
 	@Override // 사용중인 시간권,고정석 날짜 계산=====================================================================
 	public void calculateUppInUsedDay(String id, String uppcode) {
-		UserPurchasedProductDTO usedUppDto = uppmapper.selectInUsedUppById(id);
+		UserPurchasedProductDTO usedUppDto = uppmapper.selectInUsedUppOnlyThing(id);
 
 		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
 
@@ -226,7 +229,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 			log.info("scheduleAtFixedRate usedUppDto.getPtype() : " + usedUppDto.getPtype().toString());
 
 			calculateDayScheduler = scheduler.scheduleAtFixedRate(() -> {
-				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppById(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
+				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppOnlyThing(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
 
 				if (currentUppDto.getAvailableday() >= 1) { // 남은 시간이 존재할 경우에만.
 

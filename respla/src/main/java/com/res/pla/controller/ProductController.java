@@ -101,10 +101,10 @@ public class ProductController {
 						else {
 							log.info("시작날짜가 구매날짜보다 전이거나 같을때::False : " + startDateTime.isAfter(currentDateTime));
 
-							UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectInUsedUppById(id);       // 현재 '사용중'인 상품
+							UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectInUsedUppOnlyThing(id);       // 현재 '사용중'인 상품
 
 							//==[1-2-a. 현재 시간권상품을 사용하여 입실한 경우에, 기간권 즉시사용 ]=======================							
-							if ((alreadyUsedUpp.getPtype().equals("m"))) {
+							if (alreadyUsedUpp != null && (alreadyUsedUpp.getPtype().equals("m"))) {
 								int usedSeatNum = seatservice.selectSeatById(id).getSeatnum();     // 사용중인 좌석 번호.
 								String alreadyUsedUppcode = alreadyUsedUpp.getUppcode();		   // 사용중인 시간권 상품의 uppcode.
 
@@ -134,6 +134,7 @@ public class ProductController {
 
 					} else {
 						// isDateConflictResult == true (종료날짜와 다른 상품의 시작날짜가 겹침)
+						log.info("종료날짜와 다른 상품의 시작날짜가 겹침. 409");
 						return ResponseEntity.status(HttpStatus.CONFLICT).body("isDateConflict"); // 409 Conflict
 					}
 

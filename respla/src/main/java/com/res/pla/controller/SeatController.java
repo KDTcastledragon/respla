@@ -53,15 +53,20 @@ public class SeatController {
 	public ResponseEntity<?> checkIn(@RequestBody SeatDTO seatdto) {
 		try {
 
-			log.info("체크인 선택자리 & 사용할 상품코드 dto : " + seatdto.toString());
+			log.info("체크인 요청 데이터 : " + seatdto.toString());
 
 			int seatnum = seatdto.getSeatnum();
 			String id = seatdto.getId();
 			String uppcode = seatdto.getUppcode(); // 선택한 usedUppcode
-			UserPurchasedProductDTO uppDto = uppservice.selectUppByUppcode(uppcode);
-			UserPurchasedProductDTO inUsedUppAvoidDuplicate = uppservice.selectInUsedUppById(id);
+			log.info("또 어디야 씨이이발11111");
 
-			log.info("체크인 전 확인 num/id/ptype/upp : " + seatnum + " / " + id + " / " + uppDto.getPtype() + " / " + uppcode);
+			UserPurchasedProductDTO uppDto = uppservice.selectUppByUppcode(uppcode);
+			log.info("또 어디야 씨이이발2222222");
+
+			UserPurchasedProductDTO inUsedUppAvoidDuplicate = (uppservice.selectInUsedUppOnlyThing(id) != null) ? uppservice.selectInUsedUppOnlyThing(id) : null;
+			log.info("inUsedUppAvoidDuplicate : " + inUsedUppAvoidDuplicate);
+
+			log.info("체크인 처리 전 확인 num/id/ptype/upp : " + seatnum + " / " + id + " / " + uppDto.getPtype() + " / " + uppcode);
 
 			//====[체크인 작업 시작]=======================================================
 			UserDTO userDto = userservice.selectUser(id);
@@ -72,16 +77,23 @@ public class SeatController {
 				log.info("체크인 전 좌석정보 확인 : " + seatservice.selectSeat(seatnum));
 
 				userservice.checkInCurrentUse(id);                  // 사용자 : '사용중'으로 전환
+
 				seatservice.checkInSeat(seatnum, id, uppcode);      // 좌석: '사용중'으로 전환
 				uppservice.convertInUsed(id, uppcode, true);        // upp: '사용중'으로 전환
 
+				log.info("===========진입직전=============");
+				log.info("");
+
 				//==[시간권 사용하여 체크인.]==================================================
 				if (uppDto.getPtype().equals("m")) {                                              // 시간권 계산 (== "m"으로 하면 안된다.)
+					log.info("===========진입직전==2222");
 
 					//==[기간권 소유시, 시간권 중복 사용 방지.]
 					if (inUsedUppAvoidDuplicate != null && (inUsedUppAvoidDuplicate.getPtype().equals("d") || inUsedUppAvoidDuplicate.getPtype().equals("f"))) {
+						log.info("===========진입직전=============3333");
 						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Avoid Duplicate"); // 403
 					} else {
+						log.info("===========진입직전=========44444====");
 						uppservice.calculateUppInUsedTime(id, uppcode);
 						log.info("m타입시 실행 : " + uppDto.getPtype());
 					}
@@ -90,6 +102,7 @@ public class SeatController {
 
 				//==[기간권,고정석 사용하여 체크인.]==================================================
 				else if (uppDto.getPtype().equals("d") || uppDto.getPtype().equals("f")) {      // 기간권,고정석 계산 (== "d/f" 으로 하면 안된다.) 
+					log.info("===========진입직전==========55555===");
 					log.info("d,f타입시 실행 : " + uppDto.getPtype());
 				}
 
@@ -104,7 +117,7 @@ public class SeatController {
 				return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("etc");
 			}
 		} catch (Exception e) {
-			log.info("seatList[info] 오류발생 : " + e.toString());
+			log.info("체크인 예외처리 : " + e.toString());
 			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("CheckIn ERROR");
 		}
 	}

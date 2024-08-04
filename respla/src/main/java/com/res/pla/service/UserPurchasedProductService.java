@@ -13,7 +13,7 @@ public interface UserPurchasedProductService {
 
 	List<UserPurchasedProductDTO> selectAfterStartDateUppsById(String id, LocalDateTime startDateTime);         // 사용자의 모든 구매이력을 가져온다.
 
-	UserPurchasedProductDTO selectInUsedUppById(String id);			    // 사용자가 현재 사용중인 상품 1개를 가져온다.
+	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);			    // 사용자가 현재 사용중인 상품 1개를 가져온다.
 
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);	        // 상품 1개를 가져온다.
 

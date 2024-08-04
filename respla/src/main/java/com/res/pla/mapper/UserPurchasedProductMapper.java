@@ -16,7 +16,7 @@ public interface UserPurchasedProductMapper {
 
 	List<UserPurchasedProductDTO> selectAfterStartDateUppsById(String id, LocalDateTime startDateTime);          // 시작날짜 이후의 upp 예매상품 정보.
 
-	UserPurchasedProductDTO selectInUsedUppById(String id);        // 사용자가 현재 사용중인 상품 1개를 가져온다.
+	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);        // 사용자가 현재 사용중인 상품 1개를 가져온다.
 
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);    // 상품 1개를 가져온다.
 
