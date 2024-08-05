@@ -122,18 +122,19 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	}
 
 	@Override
-	public void RealTimeUpdateUppTime(String id, String uppcode) {
-		uppmapper.RealTimeUpdateUppTime(id, uppcode);
+	public void RealTimeUpdateUppTime(String id, String uppcode, int minute) {
+		uppmapper.RealTimeUpdateUppTime(id, uppcode, minute);
 	}
 
 	@Override
-	public void RealTimeUpdateUppDay(String id, String uppcode) {
-		uppmapper.RealTimeUpdateUppDay(id, uppcode);
+	public void RealTimeUpdateUppDay(String id, String uppcode, int hour) {
+		uppmapper.RealTimeUpdateUppDay(id, uppcode, hour);
 	}
 
 	@Override
 	public void calculateUppInUsedTime(String id, String uppcode) {
 		UserPurchasedProductDTO usedUppDto = uppmapper.selectUppByUppcode(uppcode);
+		int minute = 1;
 
 		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
 
@@ -146,13 +147,13 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 
 				if (currentUppDto.getAvailabletime() >= 1) { // 남은 시간이 존재할 경우에만.
 
-					uppmapper.RealTimeUpdateUppTime(id, currentUppDto.getUppcode());
+					uppmapper.RealTimeUpdateUppTime(id, currentUppDto.getUppcode(), minute);
 
-					log.info(id + " 의 " + uppcode + " 상품 분 " + currentUppDto.getAvailabletime() + " 실시간 차감 실행");
+					log.info(id + " 의 " + uppcode + " 상품 (분) " + currentUppDto.getAvailabletime() + " 실시간 차감 실행");
 
 				} else if (currentUppDto.getAvailabletime() <= 0) { // 사용가능 시간을 모두 소비.
 
-					log.info(id + " 의 " + uppcode + " 상품 분 " + currentUppDto.getAvailabletime() + "모두 소비");
+					log.info(id + " 의 " + uppcode + " 상품 (분) " + currentUppDto.getAvailabletime() + "모두 소비");
 
 					int usedSeatnum = seatmapper.selectSeatById(id).getSeatnum();
 
@@ -165,7 +166,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 					log.info(id + " 의 " + uppcode + " 상품 사용 종료. ");
 
 				}
-			}, 10, 10, TimeUnit.SECONDS); // [if:시간권 사용시]
+			}, 10, minute, TimeUnit.SECONDS); // [if:시간권 사용시]
 
 		} // if:dto null검사 && uppcode 일치 검사
 	} // 전체 메소드
@@ -221,6 +222,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	@Override // 사용중인 시간권,고정석 날짜 계산=====================================================================
 	public void calculateUppInUsedDay(String id, String uppcode) {
 		UserPurchasedProductDTO usedUppDto = uppmapper.selectInUsedUppOnlyThing(id);
+		int hour = 100;
 
 		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
 
@@ -233,26 +235,31 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 
 				if (currentUppDto.getAvailableday() >= 1) { // 남은 시간이 존재할 경우에만.
 
-					uppmapper.RealTimeUpdateUppDay(id, currentUppDto.getUppcode());
+					uppmapper.RealTimeUpdateUppDay(id, currentUppDto.getUppcode(), hour);
 
-					log.info(id + " 의 " + uppcode + " 상품 일수 " + currentUppDto.getAvailableday() + " 실시간 차감 실행");
+					log.info(id + " 의 " + uppcode + " 상품 " + currentUppDto.getAvailableday() + " 실시간 차감 실행");
 
 				} else if (currentUppDto.getAvailableday() <= 0) { // 사용가능 시간을 모두 소비.
 
-					log.info(id + " 의 " + uppcode + " 상품 일수 " + currentUppDto.getAvailableday() + "모두 소비");
+					log.info(id + " 의 " + uppcode + " 상품 " + currentUppDto.getAvailableday() + "기간 만료");
 
 					int usedSeatnum = seatmapper.selectSeatById(id).getSeatnum();
 
 					usermapper.checkOutCurrentUse(id);                    // 사용중인 자리 자동 체크아웃
 					seatmapper.checkOutSeat(usedSeatnum, id, uppcode);
+
 					uppmapper.convertInUsed(id, uppcode, false);
+					log.info("기간제 상품 만료 후 , 미사용으로 전환[inused = false] " + uppcode);
+
 					uppmapper.convertUsable(id, uppcode, false);
+					log.info("기간제 상품 만료 후 , 사용불가로 전환[usable = false] " + uppcode);
+
 					stopCalculateUppInUsedDay();
 
 					log.info(id + " 의 " + uppcode + " 상품 사용 종료. ");
 
 				}
-			}, 10, 10, TimeUnit.SECONDS); // [if:기간권/고정석 사용시]
+			}, 10, 5, TimeUnit.SECONDS); // [if:기간권/고정석 사용시]
 			//								}, 0, 24, TimeUnit.HOURS); // [if:기간권/고정석 사용시]
 
 		} // if:dto null검사 && uppcode 일치 검사

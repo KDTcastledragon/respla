@@ -35,13 +35,13 @@
     
     <update id="RealTimeUpdateUppTime">
 	        update userpurchasedproduct 
-	        set usedtime = usedtime + 1 , availabletime = availabletime - 1
+	        set usedtime = usedtime + #{minute} , availabletime = availabletime - #{minute}
 	        where id = #{id} and uppcode = #{uppcode}
     </update>
     
     <update id="RealTimeUpdateUppDay">
 	        update userpurchasedproduct 
-	        set usedday = usedday + 1 , availableday = availableday - 1
+	        set usedday = usedday + #{hour} , availableday = availableday - #{hour}
 	        where id = #{id} and uppcode = #{uppcode}
     </update>
     

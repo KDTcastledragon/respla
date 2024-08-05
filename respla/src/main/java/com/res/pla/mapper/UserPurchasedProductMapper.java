@@ -24,9 +24,9 @@ public interface UserPurchasedProductMapper {
 
 	int convertUsable(String id, String uppcode, boolean usable); // 
 
-	int RealTimeUpdateUppTime(String id, String uppcode); // 시간차감 계산
+	int RealTimeUpdateUppTime(String id, String uppcode, int minute); // 시간차감 계산
 
-	int RealTimeUpdateUppDay(String id, String uppcode); // 시간차감 계산
+	int RealTimeUpdateUppDay(String id, String uppcode, int hour); // 시간차감 계산
 
 	List<UserPurchasedProductDTO> selectAllUpps();
 

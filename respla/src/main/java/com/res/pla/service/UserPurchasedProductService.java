@@ -17,21 +17,24 @@ public interface UserPurchasedProductService {
 
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);	        // 상품 1개를 가져온다.
 
+	//==[사용 전환 관련 메소드]====================================================================
 	boolean convertInUsed(String id, String uppcode, boolean inused);     // 사용중/미사용중 구분하는 inused Parameter
 
 	boolean convertUsable(String id, String uppcode, boolean usable);
 
 	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime, int dayValuePeriod);
 
+	//==[시간권 계산 관련 메소드]====================================================================
 	void calculateUppInUsedTime(String id, String uppcode);
 
-	void RealTimeUpdateUppTime(String id, String uppcode);
+	void RealTimeUpdateUppTime(String id, String uppcode, int minute);
 
 	void stopCalculateUppInUsedTime();
 
+	//==[기간권 / 고정석 계산 관련 메소드]====================================================================
 	void afterStartUppDayType(String id, String uppcode, LocalDateTime startDateTime);
 
-	void RealTimeUpdateUppDay(String id, String uppcode);
+	void RealTimeUpdateUppDay(String id, String uppcode, int hour);
 
 	void calculateUppInUsedDay(String id, String uppcode);
 
