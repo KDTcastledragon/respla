@@ -14,7 +14,7 @@
     </select>
     
     <select id="selectAfterStartDateUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID,날짜 기준 모든 구매 상품 -->
-	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime}
+	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime} and refunded = false
     </select>
     
     <select id="selectInUsedUppOnlyThing" resultType="com.res.pla.domain.UserPurchasedProductDTO">
@@ -26,20 +26,24 @@
     </select>
     
     <update id="convertInUsed">
-	        update userpurchasedproduct set inused = #{inused} where id = #{id} and uppcode =#{uppcode}
+	        update userpurchasedproduct set inused = #{inused} where id = #{id} and uppcode = #{uppcode}
+    </update>
+    
+    <update id="convertCalculated">
+	        update userpurchasedproduct set calculated = #{calculated} where id = #{id} and uppcode = #{uppcode}
     </update>
     
     <update id="convertUsable">
-	        update userpurchasedproduct set usable = #{usable} where id = #{id} and uppcode =#{uppcode}
+	        update userpurchasedproduct set usable = #{usable} where id = #{id} and uppcode = #{uppcode}
     </update>
     
-    <update id="RealTimeUpdateUppTime">
+    <update id="realTimeCalculateUppTimePass">
 	        update userpurchasedproduct 
 	        set usedtime = usedtime + #{minute} , availabletime = availabletime - #{minute}
 	        where id = #{id} and uppcode = #{uppcode}
     </update>
     
-    <update id="RealTimeUpdateUppDay">
+    <update id="realTimeCalculateUppDayPass">
 	        update userpurchasedproduct 
 	        set usedday = usedday + #{hour} , availableday = availableday - #{hour}
 	        where id = #{id} and uppcode = #{uppcode}

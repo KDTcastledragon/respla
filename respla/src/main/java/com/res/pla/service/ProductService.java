@@ -9,7 +9,7 @@ public interface ProductService {
 
 	List<ProductDTO> selectPtypeProducts(String ptype);
 
-	String purchaseProduct(String id, int productcode, String pType, LocalDateTime startDateTime, LocalDateTime endDateTime, boolean usable);
+	String purchaseProduct(String id, int productcode, String pType, LocalDateTime startDateTime, LocalDateTime endDateTime, String paymentOption, boolean usable);
 
 	ProductDTO selectProduct(int productcode);
 

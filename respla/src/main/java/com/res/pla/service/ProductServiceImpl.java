@@ -31,13 +31,14 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public String purchaseProduct(String id, int productcode, String pType, LocalDateTime startDateTime, LocalDateTime endDateTime, boolean usable) {
+	public String purchaseProduct(String id, int productcode, String pType, LocalDateTime startDateTime, LocalDateTime endDateTime, String paymentOption, boolean usable) {
 
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", id);
 		params.put("productcode", productcode);
 		params.put("startDateTime", startDateTime);
 		params.put("endDateTime", endDateTime);
+		params.put("paymentOption", paymentOption);
 		params.put("usable", usable);
 
 		productmapper.purchaseProduct(params);

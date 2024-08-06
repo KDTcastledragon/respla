@@ -1,6 +1,7 @@
 package com.res.pla.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +49,34 @@ public class SeatController {
 		}
 	}
 
-	//	====[2. 입실]==========================================================================================
+	//====[2. 기간권 사용중 시간권 중복사용 방지]===============================================
+	@PostMapping(value = "/finalChooseProduct")
+	public ResponseEntity<?> finalChooseProduct(@RequestBody Map<String, String> choosedData) {
+		try {
+			log.info(choosedData);
+
+			String id = choosedData.get("id");
+			String choosedpUppcode = choosedData.get("uppcode");
+
+			UserPurchasedProductDTO inUsedUpp = uppservice.selectInUsedUppOnlyThing(id);
+			String choosedUppPtype = uppservice.selectUppByUppcode(choosedpUppcode).getPtype();
+
+			if (inUsedUpp != null && (inUsedUpp.getPtype().equals("d") || inUsedUpp.getPtype().equals("f")) && choosedUppPtype.equals("m")) {
+				log.info("중복 사용 방지 : " + choosedpUppcode);
+
+				return ResponseEntity.status(HttpStatus.CONFLICT).body("is already used DayPass");
+
+			} else {
+				return ResponseEntity.ok().build();
+			}
+
+		} catch (Exception e) {
+			log.info("선택상품사용 체크인 예외처리 : " + e.toString());
+			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("finalChoose_Exception");
+		}
+	}
+
+	//========[3. 입실]==========================================================================================
 	@PostMapping(value = "/checkIn")
 	public ResponseEntity<?> checkIn(@RequestBody SeatDTO seatdto) {
 		try {
@@ -94,7 +122,7 @@ public class SeatController {
 						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Avoid Duplicate"); // 403
 					} else {
 						log.info("===========진입직전=========44444====");
-						uppservice.calculateUppInUsedTime(id, uppcode);
+						uppservice.manageTimePass(id, uppcode, uppDto.getPtype());
 						log.info("m타입시 실행 : " + uppDto.getPtype());
 					}
 

@@ -11,35 +11,34 @@ public interface UserPurchasedProductService {
 
 	List<UserPurchasedProductDTO> selectAllUppsById(String id);         // 사용자의 모든 구매이력을 가져온다.
 
-	List<UserPurchasedProductDTO> selectAfterStartDateUppsById(String id, LocalDateTime startDateTime);         // 사용자의 모든 구매이력을 가져온다.
+	List<UserPurchasedProductDTO> selectAfterStartDateUppsById(String id, LocalDateTime startDateTime);         // 사용자의 시작날짜 이후 상품들을 가져온다.
 
-	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);			    // 사용자가 현재 사용중인 상품 1개를 가져온다.
+	List<UserPurchasedProductDTO> selectAllUpps();
+
+	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);	    // 사용자가 현재 사용중인 상품 1개를 가져온다.
+
+	UserPurchasedProductDTO selectCalculatedUpp(String id);			    //  현재 시간 / 기간이 차감중인 상품 1개를 가져온다.
 
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);	        // 상품 1개를 가져온다.
 
 	//==[사용 전환 관련 메소드]====================================================================
 	boolean convertInUsed(String id, String uppcode, boolean inused);     // 사용중/미사용중 구분하는 inused Parameter
 
+	boolean convertCalculated(String id, String uppcode, boolean calculated);
+
 	boolean convertUsable(String id, String uppcode, boolean usable);
 
-	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime, int dayValuePeriod);
+	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-	//==[시간권 계산 관련 메소드]====================================================================
-	void calculateUppInUsedTime(String id, String uppcode);
+	//==[계산 / 중단 관련 메소드]====================================================================
 
-	void RealTimeUpdateUppTime(String id, String uppcode, int minute);
+	void stopCalculateScheduler(String pType);
 
-	void stopCalculateUppInUsedTime();
+	//==[상품 계산 제어 메소드]====================================================================
+	void manageTimePass(String id, String uppcode, String pType);
 
-	//==[기간권 / 고정석 계산 관련 메소드]====================================================================
-	void afterStartUppDayType(String id, String uppcode, LocalDateTime startDateTime);
+	void afterManageDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime, String pType);
 
-	void RealTimeUpdateUppDay(String id, String uppcode, int hour);
-
-	void calculateUppInUsedDay(String id, String uppcode);
-
-	void stopCalculateUppInUsedDay();
-
-	List<UserPurchasedProductDTO> selectAllUpps();
+	void manageDayPass(String id, String uppcode, String pType);
 
 }

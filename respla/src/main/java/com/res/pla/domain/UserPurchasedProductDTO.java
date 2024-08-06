@@ -31,7 +31,12 @@ public class UserPurchasedProductDTO {
 	private int price;
 
 	private boolean inused;
+	private boolean calculated;
 	private boolean usable;
+
+	private String payment;
+	private int extratime;
+	private int extraday;
 	private boolean refunded;
 
 }
