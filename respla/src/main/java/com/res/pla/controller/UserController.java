@@ -56,74 +56,6 @@ public class UserController {
 		}
 	}
 
-	//	//====[2. 로그인 유저 실시간 정보]========================================================================================
-	//	@PostMapping("/loginedUser")
-	//	public ResponseEntity<?> loginedUser(@RequestBody Map<String, String> idData) {
-	//		try {
-	//			log.info("loginedUser_idData 조회 : " + idData);
-	//
-	//			String getedId = idData.get("id");
-	//
-	//			boolean isUserCheckined = userservice.isCurrentUse(getedId);
-	//
-	//			UserPurchasedProductDTO inUsedUppDto = (uppservice.selectInUsedUppOnlyThing(getedId) != null) ? uppservice.selectInUsedUppOnlyThing(getedId) : null;   // null debugging
-	//
-	//			log.info("loginedUser_inUsedUppDto 조회 : " + inUsedUppDto);
-	//
-	//			String inUsedUppcode = (inUsedUppDto != null) ? inUsedUppDto.getUppcode() : null;  // 입실시, 사용중인 상품 uppcode
-	//
-	//			log.info("loginedUser_inUsedUppcode 조회 : " + inUsedUppcode);
-	//
-	//			String pType = (inUsedUppDto != null) ? inUsedUppDto.getPtype() : null;            // 입실시, 사용중인 상품 타입
-	//
-	//			int initialTimeValue = (inUsedUppDto != null) ? inUsedUppDto.getInitialtimevalue() : 0;  // null debugging
-	//
-	//			int usedTime = (inUsedUppDto != null) ? inUsedUppDto.getUsedtime() : 0;  // null debugging
-	//
-	//			int availabletime = (inUsedUppDto != null) ? inUsedUppDto.getAvailabletime() : 0;  // null debugging
-	//
-	//			int initialDayValue = (inUsedUppDto != null) ? inUsedUppDto.getInitialdayvalue() : 0;  // null debugging
-	//
-	//			int usedDay = (inUsedUppDto != null) ? inUsedUppDto.getUsedday() : 0;  // null debugging
-	//
-	//			int availableDay = (inUsedUppDto != null) ? inUsedUppDto.getAvailableday() : 0;  // null debugging
-	//
-	//			SeatDTO debugSeatDto = seatservice.selectSeatById(getedId);                 // null debugging
-	//
-	//			//	        log.info("loginedUser_debugSeatDto 조회 : " + debugSeatDto);
-	//
-	//			int usedSeatnum = (debugSeatDto == null) ? 0 : debugSeatDto.getSeatnum();  // null debugging [ null 저장불가. 0으로 처리]
-	//
-	//			//	        log.info("loginedUser_usedSeatnum 조회 : " + usedSeatnum);
-	//
-	//			//			log.info("loginedUser_ gId iCU iUUpp uSn : " + getedId +" / "+ isCurrentUse +" / "+ inUsedUppcode +" / "+ usedSeatnum);
-	//
-	//			Map<String, Object> loginedUserData = new HashMap<>();
-	//
-	//			//			log.info("HashMap<>() loginedUserData : " + loginedUserData);
-	//
-	//			loginedUserData.put("getedId", getedId);
-	//			loginedUserData.put("isCurrentUse", isUserCheckined);
-	//			loginedUserData.put("usedSeatNum", usedSeatnum);
-	//			loginedUserData.put("inUsedUppcode", inUsedUppcode);
-	//			loginedUserData.put("ptype", pType);
-	//			loginedUserData.put("initialTimeValue", initialTimeValue);
-	//			loginedUserData.put("usedTime", usedTime);
-	//			loginedUserData.put("availableTime", availabletime);
-	//			loginedUserData.put("initialDayValue", initialDayValue);
-	//			loginedUserData.put("usedDay", usedDay);
-	//			loginedUserData.put("availableDay", availableDay);
-	//
-	//			log.info("loginedUserData.toString() 확인 : " + loginedUserData.toString());
-	//			log.info("");
-	//
-	//			return ResponseEntity.ok().body(loginedUserData);
-	//
-	//		} catch (Exception e) {
-	//			throw e;
-	//		}
-	//	}
-
 	//====[2. 로그인 유저 실시간 정보]========================================================================================
 	@PostMapping("/loginedUser")
 	public ResponseEntity<?> loginedUser(@RequestBody Map<String, String> idData) {
@@ -139,7 +71,7 @@ public class UserController {
 
 			if (isUserCheckined) {
 				int usedSeatNum = seatservice.selectSeatById(id).getSeatnum();
-				UserPurchasedProductDTO upp = uppservice.selectInUsedUppOnlyThing(id);
+				UserPurchasedProductDTO upp = uppservice.selectInUsedTrueUpp(id);
 
 				loginedUserData.put("usedSeatNum", usedSeatNum);
 				loginedUserData.put("inUsedUppcode", upp.getUppcode());
@@ -161,8 +93,8 @@ public class UserController {
 				}
 			}
 
-			log.info("loginedUserData.toString() 확인 : " + loginedUserData.toString());
-			log.info("");
+			log.info("loginedUserData 전송 : " + loginedUserData.toString());
+
 			return ResponseEntity.ok().body(loginedUserData);
 
 		} catch (Exception e) {

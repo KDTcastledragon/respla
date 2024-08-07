@@ -8,14 +8,24 @@
  	<select id="selectAllUsableUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO" >  <!-- ID기준 사용가능한 모든 상품 -->
 	        SELECT * FROM userpurchasedproduct WHERE id = #{id} and usable = true
 	</select>
+	
+	 <select id="selectAllUsableUppsByIdPType" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID기준 모든 구매 상품 -->
+	        SELECT * FROM userpurchasedproduct where id = #{id}
+    </select>
         		    		
     <select id="selectAllUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID기준 모든 구매 상품 -->
 	        SELECT * FROM userpurchasedproduct where id = #{id}
     </select>
-    
+   
     <select id="selectAfterStartDateUppsById" resultType="com.res.pla.domain.UserPurchasedProductDTO">         <!-- ID,날짜 기준 모든 구매 상품 -->
 	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime} and refunded = false
     </select>
+    
+	<select id="selectAllUpps" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+	        SELECT * FROM userpurchasedproduct
+	</select>
+	
+	<!-- =======================================================  -->
     
      <select id="selectUppByUppcode" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- uppcode 기준 상품 1개 -->
 	        SELECT * FROM userpurchasedproduct WHERE uppcode = #{uppcode}
@@ -28,6 +38,29 @@
     <select id="selectCalculatedTrueUpp" resultType="com.res.pla.domain.UserPurchasedProductDTO">
     		SELECT * FROM userpurchasedproduct WHERE id = #{id} AND calculated = true
 	</select>
+	
+	 <select id="selectUsableOneUppByIdPType" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+    		SELECT * FROM userpurchasedproduct WHERE id = #{id} and usable = true
+    		<choose>
+        		<when test='pType == "df"'>
+            		and ptype = #{pType}
+        		</when>
+        		<when test='pType == "df"'>
+            		and ptype = #{pType}
+        		</when>
+        		<when test='pType == "df"'>
+            		and ptype = #{pType}
+        		</when>
+        		<when test='pType == "df"'>
+            		and (ptype = 'd' or ptype = 'f')
+        		</when>
+    		</choose>
+    		order by purchasedate asc
+    		limit 1
+	</select>
+    
+    
+    <!-- =======================================================  -->
     
     <update id="convertInUsed">
 	        update userpurchasedproduct set inused = #{inused} where id = #{id} and uppcode = #{uppcode}
@@ -52,16 +85,6 @@
 	        set usedday = usedday + #{hour} , availableday = availableday - #{hour}
 	        where id = #{id} and uppcode = #{uppcode}
     </update>
-    
-    
-	<select id="selectAllUpps" resultType="com.res.pla.domain.UserPurchasedProductDTO">
-	        SELECT * FROM userpurchasedproduct
-	</select>
-	
-	
-	
-	
-    
     
     
   

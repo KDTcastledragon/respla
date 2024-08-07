@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor	// default 생성자
 @Data
 public class ProductDTO {
-	
+
 	private int productcode;
 	private String ptype;
-	
+
 	private int timevalue;
 	private int dayvalue;
-	
+
 	private int price;
-	
+
 	private int sellcount;
+	private int refundcount;
 }
-	

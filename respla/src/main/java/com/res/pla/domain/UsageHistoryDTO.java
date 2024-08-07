@@ -11,17 +11,14 @@ import lombok.NoArgsConstructor;
 @Data
 public class UsageHistoryDTO {
 	private String uhcode;
-	
 	private String id;
+
+	private LocalDateTime usedatetime;
+
 	private int seatnum;
-	
-	private LocalDateTime startdate;
-	private LocalDateTime enddate;
-	
-	private String uppcode; 
-	
-	
-	private int usagetime;
-	private int usageday;  
-	
+
+	private String actiontype;
+
+	private String uppcode;
+
 }

@@ -42,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
 		params.put("usable", usable);
 
 		productmapper.purchaseProduct(params);
+		productmapper.updateSellCount(productcode, 1);
 
 		// 여기에서 params에 의해 설정된 uppcode 값을 가져온다.
 		return (String) params.get("uppcode");

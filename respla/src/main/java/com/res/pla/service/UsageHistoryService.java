@@ -1,5 +1,16 @@
-//package com.res.pla.service;
-//
-//public interface UsageHistoryService {
-//
-//}
+package com.res.pla.service;
+
+import java.util.List;
+
+import com.res.pla.domain.UsageHistoryDTO;
+
+public interface UsageHistoryService {
+
+	int recordAction(String id, int seatNum, String actionType, String uppcode);
+
+	List<UsageHistoryDTO> selectAllHistory();
+
+	List<UsageHistoryDTO> selectAllHistoryById(String id);
+
+	List<UsageHistoryDTO> selectAllHistoryByIdActionType(String id);
+}

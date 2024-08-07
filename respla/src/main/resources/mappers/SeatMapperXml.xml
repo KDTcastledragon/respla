@@ -17,21 +17,13 @@
         SELECT * FROM seatlist WHERE id = #{id}
     </select>
     
-    <update id="checkInSeat" >
+    <update id="occupySeat" >
         update seatlist set occupied = true, id = #{id} , uppcode = #{uppcode} where seatnum = #{seatnum}
     </update>
     
-    <update id="checkOutSeat" >
+    <update id="vacateSeat" >
         update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{usedSeatnum}
     </update>
-    
-    
-    
-
-    
-
-    
-    
     
 
 </mapper>

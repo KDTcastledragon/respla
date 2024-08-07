@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.res.pla.domain.SeatDTO;
-import com.res.pla.domain.UserDTO;
 import com.res.pla.domain.UserPurchasedProductDTO;
 import com.res.pla.service.SeatService;
+import com.res.pla.service.UsageHistoryService;
 import com.res.pla.service.UserPurchasedProductService;
 import com.res.pla.service.UserService;
 
@@ -30,6 +30,7 @@ public class SeatController {
 	SeatService seatservice;
 	UserService userservice;
 	UserPurchasedProductService uppservice;
+	UsageHistoryService usgservice;
 
 	//	====[1. 좌석현황 출력]==========================================================================================
 	@GetMapping("/presentAllSeats")
@@ -58,21 +59,22 @@ public class SeatController {
 			String id = choosedData.get("id");
 			String choosedpUppcode = choosedData.get("uppcode");
 
-			UserPurchasedProductDTO inUsedUpp = uppservice.selectInUsedUppOnlyThing(id);
 			String choosedUppPtype = uppservice.selectUppByUppcode(choosedpUppcode).getPtype();
+			UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectCalculatedTrueUpp(id);               // 
 
-			if (inUsedUpp != null && (inUsedUpp.getPtype().equals("d") || inUsedUpp.getPtype().equals("f")) && choosedUppPtype.equals("m")) {
-				log.info("중복 사용 방지 : " + choosedpUppcode);
+			if (choosedUppPtype.equals("m") && alreadyUsedUpp != null && (alreadyUsedUpp.getPtype().equals("d") || alreadyUsedUpp.getPtype().equals("f"))) {
+				log.info("기간권 사용중, 시간권 중복 사용 방지");
 
-				return ResponseEntity.status(HttpStatus.CONFLICT).body("is already used DayPass");
+				return ResponseEntity.status(HttpStatus.CONFLICT).body("is already used DayPass"); // 409?
 
 			} else {
+				log.info("체크인 사용할 상품 선택 : " + choosedpUppcode);
 				return ResponseEntity.ok().build();
 			}
 
 		} catch (Exception e) {
 			log.info("선택상품사용 체크인 예외처리 : " + e.toString());
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("finalChoose_Exception");
+			throw e;
 		}
 	}
 
@@ -85,7 +87,7 @@ public class SeatController {
 
 			int seatnum = seatdto.getSeatnum();
 			String id = seatdto.getId();
-			String uppcode = seatdto.getUppcode(); // 최종선택한 Uppcode
+			String uppcode = seatdto.getUppcode(); // 위 메소드의 choosedpUppcode와 같은 값.
 
 			String uppPType = uppservice.selectUppByUppcode(uppcode).getPtype();
 			boolean uppIsUsable = uppservice.selectUppByUppcode(uppcode).isUsable();
@@ -96,7 +98,7 @@ public class SeatController {
 
 			if (isUserCheckined) {
 				log.info("이미 입실하였음");
-				return ResponseEntity.status(HttpStatus.CONFLICT).body("already CheckIn");
+				return ResponseEntity.status(HttpStatus.CONFLICT).body("already CheckIn");  // 409
 
 			} else if (isUserCheckined == false && uppcode != null && uppIsUsable == true) { // 미입실 && uppcode존재 && upp사용가능
 				log.info("미입실상태. 입실을 위한 상품 타입 검사 시작");
@@ -104,9 +106,10 @@ public class SeatController {
 				//===[1. 시간권으로 입실]======================================================================================================				
 				if (uppPType.equals("m")) {
 					log.info("상품타입 검사 : {}", uppPType);
-					UserPurchasedProductDTO usableDayPass = uppservice.selectCalculatedUpp(id); // 계산중인 upp상품 가져오기. 시간권 중복사용 방지를 위해.
 
-					if (usableDayPass != null && (usableDayPass.getPtype().equals("d") || usableDayPass.getPtype().equals("f")) && usableDayPass.isUsable() == true) {
+					UserPurchasedProductDTO usableDayPass = uppservice.selectUsableOneUppByIdPType(id, "df"); // 사용가능한 기간권 보유 확인.
+
+					if (usableDayPass != null) {
 						log.info("사용가능한 기간권 이미 보유중. 중복사용 차단.");
 						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Avoid Duplicate"); // 403
 
@@ -114,7 +117,6 @@ public class SeatController {
 						log.info("사용가능한 기간권 보유하지 않음.");
 
 						seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
-
 						log.info("시간권 사용하여 체크인 성공");
 					}
 
@@ -124,12 +126,12 @@ public class SeatController {
 					log.info("상품타입 검사 : {}", uppPType);
 
 					seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
-
 					log.info("기간권 사용하여 체크인 성공");
 				}
 
 				log.info("체크인 성공 데이터 확인 : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
+				usgservice.recordAction(id, seatnum, "in", uppcode);
 				return ResponseEntity.ok().build();
 
 			} else if (uppcode == null) {                             // react 에서도 방지하지만, 중요하므로 한번 더 체크.
@@ -149,40 +151,34 @@ public class SeatController {
 	@PostMapping(value = "/checkOut")
 	public ResponseEntity<?> checkOut(@RequestBody SeatDTO seatdto) {
 		try {
-
 			log.info("체크아웃 요청 데이터 : " + seatdto.toString());
 
-			int usedSeatnum = seatdto.getSeatnum();
 			String id = seatdto.getId();
+			int usedSeatnum = seatdto.getSeatnum();
 			String usedUppcode = seatdto.getUppcode();
 
 			String uppPType = uppservice.selectUppByUppcode(usedUppcode).getPtype();
 
-			log.info("체크아웃! num/id/upp : " + usedSeatnum + " / " + id + " / " + usedUppcode);
-
 			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
-			if (isUserCheckined) {
-				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode);
-				if (uppPType.equals("m")) {                                              // 시간권 계산 (== "m"으로 하면 안된다.)
-					log.info("시간권 체크아웃");
-					uppservice.convertInUsed(id, usedUppcode, false);
-					uppservice.stopCalculateScheduler(uppPType);
+			log.info("체크아웃 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
 
-				} else if (uppDto.getPtype().equals("d") || uppDto.getPtype().equals("f")) {      // 기간권,고정석 계산 (== "d/f" 으로 하면 안된다.) 
-					//					uppservice.OperateUppInUsedTimeDay(id, uppcode);
-					log.info("d,f타입시 실행됨 : " + uppDto.getPtype());
-				}
+			if (isUserCheckined == true && usedUppcode != null) {
+				log.info("체크인여부 , 사용upp 확인. 체크아웃 작업 시작");
+
+				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
+				usgservice.recordAction(id, usedSeatnum, "out", usedUppcode);
+				log.info("체크아웃 성공");
 
 				return ResponseEntity.ok().build();
 
 			} else {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body("you need to checkin First ");
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("you need to checkin First "); // 403
 			}
 
 		} catch (Exception e) {
-			log.info("checkOut 오류발생 : " + e.toString());
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("CheckIn ERROR");
+			log.info("checkOut 예외처리 : " + e.toString());
+			throw e;
 		}
 	}
 
@@ -198,23 +194,32 @@ public class SeatController {
 			String usedUppcode = seatdto.getUppcode();
 
 			int usedSeatnum = seatservice.selectSeatById(id).getSeatnum();
+			String uppPType = uppservice.selectUppByUppcode(usedUppcode).getPtype();
 
 			log.info("moveSeat! num/id/upp : " + usedSeatnum + " / " + id + " / " + usedUppcode);
 
 			//			=====[자리이동 작업 시작]=========
-			UserDTO userDto = userservice.selectUser(id);
-			if (userDto.isCurrentuse()) {
-				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode);
-				seatservice.checkInSeat(newSeatnum, id, usedUppcode);
+
+			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+
+			log.info("자리이동 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
+
+			if (isUserCheckined == true && usedUppcode != null) {
+				log.info("체크인여부 , 사용upp 확인. 자리이동 작업 시작");
+
+				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
+				seatservice.checkInSeat(newSeatnum, id, usedUppcode, uppPType);
+				usgservice.recordAction(id, newSeatnum, "move", usedUppcode);
+				log.info("자리이동 성공");
 
 				return ResponseEntity.ok().build();
 
 			} else {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body("you need to checkin First ");
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("you need to checkin First "); // 403
 			}
 		} catch (Exception e) {
-			log.info("moveSeat 오류발생 : " + e.toString());
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("moveSeat ERROR");
+			log.info("moveSeat 예외처리 : " + e.toString());
+			throw e;
 		}
 	}
 }

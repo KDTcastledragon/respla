@@ -3,18 +3,10 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 	
-	<mapper namespace="com.res.pla.mapper.ProductMapper">
+	<mapper namespace="com.res.pla.mapper.UsageHistoryMapper">
 	
-	    <select id="selectPtypeProducts" resultType="com.res.pla.domain.ProductDTO">
-	        SELECT * FROM product where ptype = #{ptype}
-	    </select>
-	    
-	    <select id="selectProduct" resultType="com.res.pla.domain.ProductDTO" >
-	        SELECT * FROM product WHERE productcode = #{productcode}
-	    </select>
-	    
-	   	<insert id="purchaseProduct" parameterType="map" keyProperty="uppcode">
-	   		<selectKey keyProperty="uppcode" resultType="String" order="BEFORE">
+	   	<insert id="recordAction" parameterType="map" keyProperty="uppcode">
+	   		<selectKey keyProperty="uhcode" resultType="String" order="BEFORE">
         	SELECT concat(#{id}, #{productcode}, (SELECT ptype FROM product WHERE productcode = #{productcode}),
                       substring(date_format(now(), '%Y%m%d%H%i%s'), 3)) AS uppcode
    		 	</selectKey>
@@ -37,13 +29,14 @@
 		);
 		</insert>
 		
-		<update id="updateSellCount">
-		update product set sellcount = sellcount + #{amount} where productcode = #{productcode}
-		</update>
+		
+	    <select id="selectAllHistory" resultType="com.res.pla.domain.UsageHistoryDTO">
+	        SELECT * FROM usagehistory where ptype = #{ptype}
+	    </select>
 	    
-	    <update id="updateRefundCount">
-		update product set refundcount = refundcount + #{amount} where productcode = #{productcode}
-		</update>
+	    <select id="selectAllHistoryById" resultType="com.res.pla.domain.UsageHistoryDTO" >
+	        SELECT * FROM usagehistory WHERE productcode = #{productcode}
+	    </select>
 		
 	</mapper>
 	
