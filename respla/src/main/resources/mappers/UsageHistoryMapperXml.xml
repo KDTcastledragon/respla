@@ -7,7 +7,7 @@
 	
 	   	<insert id="recordAction" parameterType="map" keyProperty="uppcode">
 	   		<selectKey keyProperty="uhcode" resultType="String" order="BEFORE">
-        	SELECT concat(#{id}, #{productcode}, (SELECT ptype FROM product WHERE productcode = #{productcode}),
+        	select concat(#{id}, #{productcode}, (SELECT ptype FROM product WHERE productcode = #{productcode}),
                       substring(date_format(now(), '%Y%m%d%H%i%s'), 3)) AS uppcode
    		 	</selectKey>
 			insert into userpurchasedproduct(uppcode , id , productcode , ptype , initialtimevalue , availabletime ,
@@ -31,11 +31,15 @@
 		
 		
 	    <select id="selectAllHistory" resultType="com.res.pla.domain.UsageHistoryDTO">
-	        SELECT * FROM usagehistory where ptype = #{ptype}
+	        SELECT * FROM usagehistory
 	    </select>
 	    
 	    <select id="selectAllHistoryById" resultType="com.res.pla.domain.UsageHistoryDTO" >
-	        SELECT * FROM usagehistory WHERE productcode = #{productcode}
+	        SELECT * FROM usagehistory where id = #{id}
+	    </select>
+	    
+	     <select id="selectAllHistoryByIdActionType" resultType="com.res.pla.domain.UsageHistoryDTO" >
+	        SELECT * FROM usagehistory where id = #{id}
 	    </select>
 		
 	</mapper>
