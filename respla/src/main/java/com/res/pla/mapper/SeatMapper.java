@@ -10,16 +10,13 @@ import com.res.pla.domain.SeatDTO;
 public interface SeatMapper {
 
 	List<SeatDTO> presentAllSeats();
-	
-	int checkInSeat(int seatnum , String id, String uppcode);
-	
-	int checkOutSeat(int usedSeatnum , String id, String usedUppcode);
 
-	int moveSeat(int usedseatnum , String id, String usedUppcode);
-	
 	SeatDTO selectSeatById(String id);
-	
+
 	SeatDTO selectSeat(int seatnum);
-    
+
+	int occupySeat(int seatnum, String id, String uppcode);
+
+	int vacateSeat(int usedSeatnum, String id, String usedUppcode);
 
 }

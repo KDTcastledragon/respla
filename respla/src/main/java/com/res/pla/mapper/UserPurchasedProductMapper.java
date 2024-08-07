@@ -18,11 +18,11 @@ public interface UserPurchasedProductMapper {
 
 	List<UserPurchasedProductDTO> selectAllUpps();
 
-	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);        // 사용자가 현재 사용중인 상품 1개를 가져온다.
-
-	UserPurchasedProductDTO selectCalculatedUpp(String id);             // 현재 시간or기간이 차감중인 상품 1개를 가져온다.
-
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);         // 상품 1개를 가져온다.
+
+	UserPurchasedProductDTO selectInUsedTrueUpp(String id);        // 사용자가 현재 사용중인 상품 1개를 가져온다.
+
+	UserPurchasedProductDTO selectCalculatedTrueUpp(String id);             // 현재 시간or기간이 차감중인 상품 1개를 가져온다.
 
 	int convertInUsed(String id, String uppcode, boolean inused);         // 입실시 true , 퇴실시 false.
 

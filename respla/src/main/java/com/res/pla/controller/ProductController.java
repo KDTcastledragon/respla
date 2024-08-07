@@ -98,8 +98,7 @@ public class ProductController {
 	@PostMapping("/payment")
 	public ResponseEntity<?> payment(@RequestBody Map<String, Object> requestData) {
 		try {
-
-			log.info("상품구매 Data: " + requestData);
+			log.info("상품결제 요청 Data: " + requestData);
 
 			String id = (String) requestData.get("id");
 			int productcode = (int) requestData.get("productcode");
@@ -107,9 +106,6 @@ public class ProductController {
 			String startDateTimeString = (String) requestData.get("startDateTime");
 			String endDateTimeString = (String) requestData.get("endDateTime");
 			String paymentOption = (String) requestData.get("paymentOption");
-
-			//			ProductDTO productDto = productservice.selectProduct(productcode);         // 기간권 || 고정석일 경우, 따로 작업하기 위해서.
-			//			String pType = productDto.getPtype();                                      // '구매하려는' 상품타입 구분[시간권 , 기간권 , 고정석] 
 
 			LocalDateTime startDateTime = (startDateTimeString == null) ? null : LocalDateTime.parse(startDateTimeString); // 시작날짜 타입변환
 			LocalDateTime endDateTime = (endDateTimeString == null) ? null : LocalDateTime.parse(endDateTimeString); // 시작날짜 타입변환
@@ -119,23 +115,25 @@ public class ProductController {
 				LocalDateTime currentDateTime = LocalDateTime.now();        // 현재 시간.
 
 				if (startDateTime != null && endDateTime != null) {                                                                     // null Exception 처리.
-					log.info("시작일 ~ 종료일 : " + startDateTime + " ~ " + endDateTime);
+					log.info("기간권 시작일 ~ 종료일 : " + startDateTime + " ~ " + endDateTime);
 
 					boolean isDateConflictResult = uppservice.isDateConflict(id, startDateTime, endDateTime);    // 날짜 충돌 여부 검사
-
 					log.info("날짜충돌검사 결과 : " + isDateConflictResult);
 
-					//==[날짜 충돌 없을때. (== 구매가능상태) ]					
+					//==[날짜 충돌 없을때. (== 구매가능상태) 이중검사...이긴 하다. ]					
 					if (isDateConflictResult == false) {
 
-						String purchasedUppcode = productservice.purchaseProduct(id, productcode, pType, startDateTime, endDateTime, paymentOption, false);
-						UserPurchasedProductDTO uppDto = uppservice.selectUppByUppcode(purchasedUppcode);
+						String purchasedUppcode = productservice.purchaseProduct(id, productcode, pType, startDateTime, endDateTime, paymentOption, true);
+						log.info("상품 구매 성공 (uppcode) : " + purchasedUppcode);
+
+						UserPurchasedProductDTO wahtTheHellisIt = uppservice.selectUppByUppcode(purchasedUppcode);   // 어따 쓰려고 만들어놧지?????????? 뭐지?
 
 						//==[1-1. 시작날짜가 구매날짜보다 뒤일때 (==예약구매) ]============================
 						if (startDateTime != null && startDateTime.isAfter(currentDateTime)) {
-							log.info("시작날짜가 구매날짜보다 후일때::True : " + startDateTime.isAfter(currentDateTime));
+							log.info("시작날짜가 구매날짜보다 뒤일때 (==예약구매)");
 
-							uppservice.afterManageDayPassFromStartDate(id, purchasedUppcode, startDateTime, pType);
+							uppservice.convertUsable(id, purchasedUppcode, false); // 예약날짜에 true가 되야하므로, false로 변경.
+							uppservice.afterCalculateDayPassFromStartDate(id, purchasedUppcode, startDateTime);
 							log.info("예약구매 확인 : " + id + purchasedUppcode + startDateTime);
 						}
 
@@ -143,9 +141,9 @@ public class ProductController {
 						else {
 							log.info("시작날짜가 구매날짜보다 전이거나 같을때::False : " + startDateTime.isAfter(currentDateTime));
 
-							UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectInUsedUppOnlyThing(id);       // 현재 '사용중'인 상품
+							UserPurchasedProductDTO alreadyUsedUpp = uppservice.selectI(id);       // 현재 '사용중'인 상품
 
-							//==[1-2-a. 현재 시간권상품을 사용하여 입실한 경우, 기간권 즉시사용시 ]=======================							
+							//==[1-2-a. 현재 시간권상품을 사용하여 입실한 경우, 기간권으로 자동 변경시 ]=======================							
 							if (alreadyUsedUpp != null && (alreadyUsedUpp.getPtype().equals("m"))) {
 								int usedSeatNum = seatservice.selectSeatById(id).getSeatnum();     // 사용중인 좌석 번호.
 								String alreadyUsedUppcode = alreadyUsedUpp.getUppcode();		   // 사용중인 시간권 상품의 uppcode.
@@ -165,12 +163,10 @@ public class ProductController {
 
 							}
 
-							//==[1-2-b. 구매 기간권 즉시사용시 ]=======================	
+							//==[1-2-b. 체크인에 사용중인 시간권 상품 없을 시   ]=======================	
 							else {
-								uppservice.convertUsable(id, purchasedUppcode, true);
-								uppservice.convertCalculated(id, purchasedUppcode, true);
-								uppservice.manageDayPass(id, purchasedUppcode, pType);
-								log.info("구매 후 즉시사용 : " + id + " / " + purchasedUppcode);        // 재 체크인 때문에 코드 중복 사용.
+								uppservice.manageDayPass(id, purchasedUppcode);
+								log.info("기간권 (즉시 사용가능) : " + id + " / " + purchasedUppcode);        // 재 체크인 때문에 코드 중복 사용.
 							}
 						}
 
@@ -204,7 +200,7 @@ public class ProductController {
 		} catch (Exception e) {
 
 			log.info("purchaseProduct_예외처리 : " + e.toString());
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("purchase_Product Exception");
+			throw e;
 		}
 	}
 

@@ -17,13 +17,17 @@
 	        SELECT * FROM userpurchasedproduct where id = #{id} and startdate >= #{startDateTime} and refunded = false
     </select>
     
-    <select id="selectInUsedUppOnlyThing" resultType="com.res.pla.domain.UserPurchasedProductDTO">
-    		SELECT * FROM userpurchasedproduct WHERE id = #{id} AND inused = true
-	</select>
-    
      <select id="selectUppByUppcode" resultType="com.res.pla.domain.UserPurchasedProductDTO" >      <!-- uppcode 기준 상품 1개 -->
 	        SELECT * FROM userpurchasedproduct WHERE uppcode = #{uppcode}
     </select>
+    
+    <select id="selectInUsedTrueUpp" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+    		SELECT * FROM userpurchasedproduct WHERE id = #{id} AND inused = true
+	</select>
+	
+    <select id="selectCalculatedTrueUpp" resultType="com.res.pla.domain.UserPurchasedProductDTO">
+    		SELECT * FROM userpurchasedproduct WHERE id = #{id} AND calculated = true
+	</select>
     
     <update id="convertInUsed">
 	        update userpurchasedproduct set inused = #{inused} where id = #{id} and uppcode = #{uppcode}

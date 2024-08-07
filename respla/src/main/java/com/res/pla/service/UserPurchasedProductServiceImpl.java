@@ -32,9 +32,6 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	@Autowired
 	SeatMapper seatmapper;
 
-	//	@Autowired
-	//	SeatService seatservice;
-
 	@Autowired
 	private TaskScheduler dayTaskScheduler;
 
@@ -63,13 +60,13 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	}
 
 	@Override
-	public UserPurchasedProductDTO selectInUsedUppOnlyThing(String id) {
-		return uppmapper.selectInUsedUppOnlyThing(id);
+	public UserPurchasedProductDTO selectInUsedTrueUpp(String id) {
+		return uppmapper.selectInUsedTrueUpp(id);
 	}
 
 	@Override
-	public UserPurchasedProductDTO selectCalculatedUpp(String id) {
-		return uppmapper.selectCalculatedUpp(id);
+	public UserPurchasedProductDTO selectCalculatedTrueUpp(String id) {
+		return uppmapper.selectCalculatedTrueUpp(id);
 	}
 
 	@Override
@@ -98,7 +95,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	@Override
 	public boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime) {
 		List<UserPurchasedProductDTO> uppList = selectAfterStartDateUppsById(id, startDateTime);           // 지정시작날짜보다 후일인 상품목록들(전체를 불러오면 너무 많다.)
-		UserPurchasedProductDTO usedUpp = selectInUsedUppOnlyThing(id);                                    // 현재 사용중인 상품(전체를 불러오면 너무 많다.)
+		UserPurchasedProductDTO usedUpp = selectCalculatedTrueUpp(id);                                    // 현재 사용중인 상품(전체를 불러오면 너무 많다.)
 
 		//==[1. 기간권 , 고정석 상품을 사용중일 때 ]=================================================================		
 		if (usedUpp != null && (usedUpp.getPtype().equals("d") || usedUpp.getPtype().equals("f"))) {
@@ -137,51 +134,64 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	//====[시간 계산]==================================================================================================================================	
 
 	@Override
-	public void stopCalculateScheduler(String pType) {
-		if (pType.equals("m") && calculateTimeScheduler != null) {
+	public void stopCalculateTimePass(String id, String uppcode) {
+		if (calculateTimeScheduler != null) {
 			calculateTimeScheduler.cancel(true);
-			log.info("시간권 차감계산 중단 성공");
-
-		} else if ((pType.equals("d") || pType.equals("f")) && calculateDayScheduler != null) {
-			calculateDayScheduler.cancel(true);
-			log.info("기간권 차감계산 중단 성공");
+			log.info("시간권 상품 시간 차감 중단 성공");
 
 		} else {
-			log.info("stopCalculateUppValue 오류");
+			log.info("calculateTimeScheduler == null");
 		}
 	}
 
 	@Override
-	public void manageTimePass(String id, String uppcode, String pType) {
-		UserPurchasedProductDTO usedUppDto = uppmapper.selectUppByUppcode(uppcode);
+	public void endCalculateDayPass(String id, String uppcode) {
+		if (calculateDayScheduler != null) {
+			int resultInUsed = uppmapper.convertInUsed(id, uppcode, false);
+			int resultcaluclated = uppmapper.convertCalculated(id, uppcode, false);
+			int resultUsable = uppmapper.convertUsable(id, uppcode, false);
+
+			calculateDayScheduler.cancel(true);
+			log.info("기간권 상품 계산 종료");
+
+		} else {
+			log.info("calculateDayScheduler == null");
+		}
+
+	}
+
+	@Override
+	public void calculateTimePass(String id, String uppcode) {
+		UserPurchasedProductDTO upp = uppmapper.selectInUsedTrueUpp(uppcode);
 		int minute = 1;
 
-		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
-
-		if (usedUppDto != null && usedUppDto.getUppcode().equals(uppcode) && usedUppDto.getPtype().equals("m")) { // 사용중인 uppcode 일치 검사
-			log.info("scheduleAtFixedRate usedUppDto.getUppcode() : " + usedUppDto.getUppcode().toString());
-			log.info("scheduleAtFixedRate usedUppDto.getPtype() : " + usedUppDto.getPtype().toString());
+		if (upp != null && upp.getUppcode().equals(uppcode) && upp.getPtype().equals("m")) { // 사용중인 uppcode 일치 검사
+			uppmapper.convertCalculated(id, uppcode, true);
+			log.info("convertCalculated == true ");
 
 			calculateTimeScheduler = scheduler.scheduleAtFixedRate(() -> {
-				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppOnlyThing(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
+				UserPurchasedProductDTO currentUpp = uppmapper.selectCalculatedTrueUpp(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
 
-				if (currentUppDto.getAvailabletime() >= 1) { // 남은 시간이 존재할 경우에만.
+				// [1. 상품 시간이 존재할 경우]====================================================
+				if (currentUpp.getAvailabletime() >= 1) {
+					log.info(id + " 의 " + uppcode + " : " + currentUpp.getAvailabletime() + " 시간 계산 작동 시작");
 
-					uppmapper.calculateUppTimeValue(id, currentUppDto.getUppcode(), minute);
+					uppmapper.calculateUppTimeValue(id, currentUpp.getUppcode(), minute);
+					log.info(id + " 의 " + uppcode + " : " + currentUpp.getAvailabletime() + " 시간(분) 계산 작동 성공.");
 
-					log.info(id + " 의 " + uppcode + " 상품 (분) " + currentUppDto.getAvailabletime() + " 실시간 차감 실행");
-
-				} else if (currentUppDto.getAvailabletime() <= 0) { // 사용가능 시간을 모두 소비.
-
-					log.info(id + " 의 " + uppcode + " 상품 (분) " + currentUppDto.getAvailabletime() + "모두 소비");
+				}
+				// [2. 상품 시간 모두 소비.]====================================================
+				else if (currentUpp.getAvailabletime() <= 0) { // 
+					log.info(id + " 의 " + uppcode + " : " + currentUpp.getAvailabletime() + "시간 모두 소비");
 
 					int usedSeatnum = seatmapper.selectSeatById(id).getSeatnum();
 
-					usermapper.checkOutCurrentUse(id);
-					seatmapper.checkOutSeat(usedSeatnum, id, uppcode);
+					seatmapper.vacateSeat(usedSeatnum, id, uppcode);
 					uppmapper.convertInUsed(id, uppcode, false);
+					uppmapper.convertCalculated(id, uppcode, false);
 					uppmapper.convertUsable(id, uppcode, false);
-					stopCalculateScheduler(pType);
+
+					calculateTimeScheduler.cancel(true);
 
 					log.info(id + " 의 " + uppcode + " 상품 사용 종료. ");
 
@@ -194,43 +204,31 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	} // 전체 메소드
 
 	@Override // 사용중인 시간권,고정석 날짜 계산=====================================================================
-	public void manageDayPass(String id, String uppcode, String pType) {
-		UserPurchasedProductDTO usedUppDto = uppmapper.selectInUsedUppOnlyThing(id);
+	public void calculateDayPass(String id, String uppcode) {
+		UserPurchasedProductDTO upp = uppmapper.selectInUsedTrueUpp(id);
 		int hour = 100;
 
-		log.info("scheduleAtFixedRate usedUppDto : " + usedUppDto.toString());
-
-		if (usedUppDto != null && usedUppDto.getUppcode().equals(uppcode) && (usedUppDto.getPtype().equals("d") || usedUppDto.getPtype().equals("f"))) { // 사용중인 uppcode 일치 검사
-			log.info("scheduleAtFixedRate usedUppDto.getUppcode() : " + usedUppDto.getUppcode().toString());
-			log.info("scheduleAtFixedRate usedUppDto.getPtype() : " + usedUppDto.getPtype().toString());
+		if (upp != null && upp.getUppcode().equals(uppcode) && (upp.getPtype().equals("d") || upp.getPtype().equals("f"))) { // 사용중인 uppcode 일치 검사
+			uppmapper.convertCalculated(id, uppcode, true);
+			log.info("convertCalculated == true ");
 
 			calculateDayScheduler = scheduler.scheduleAtFixedRate(() -> {
-				UserPurchasedProductDTO currentUppDto = uppmapper.selectInUsedUppOnlyThing(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
+				UserPurchasedProductDTO currentUpp = uppmapper.selectCalculatedTrueUpp(id); // ★최신 상태조회를 반드시 해야함★usedUppDto를 쓰면 반영이 안됨.
 
-				if (currentUppDto != null && (currentUppDto.getPtype().equals("d") || currentUppDto.getPtype().equals("f"))) {
+				if (currentUpp != null && (currentUpp.getPtype().equals("d") || currentUpp.getPtype().equals("f"))) {
 
-					if (currentUppDto.getAvailableday() >= 1) { // 남은 시간이 존재할 경우에만.
+					// [1. 상품 시간이 존재할 경우]====================================================
+					if (currentUpp.getAvailableday() >= 1) { // 남은 시간이 존재할 경우에만.
 
-						uppmapper.calculateUppTimeValue(id, currentUppDto.getUppcode(), hour);
+						uppmapper.calculateUppTimeValue(id, currentUpp.getUppcode(), hour);
+						log.info(id + " 의 " + uppcode + " 상품 " + currentUpp.getAvailableday() + " 실시간 차감 실행");
 
-						log.info(id + " 의 " + uppcode + " 상품 " + currentUppDto.getAvailableday() + " 실시간 차감 실행");
-
-					} else if (currentUppDto.getAvailableday() <= 0) { // 사용가능 시간을 모두 소비.
-
-						log.info(id + " 의 " + uppcode + " 상품 " + currentUppDto.getAvailableday() + "기간 만료");
-
-						uppmapper.convertInUsed(id, uppcode, false);
-						log.info("기간제 상품 만료 후 , 미사용으로 전환[inused = false] " + uppcode);
-
-						uppmapper.convertUsable(id, uppcode, false);
-						log.info("기간제 상품 만료 후 , 사용불가로 전환[usable = false] " + uppcode);
-
-						boolean isUse = usermapper.selectUser(id).isCurrentuse();
+					} else if (currentUpp.getAvailableday() <= 0) { // 사용가능 시간을 모두 소비.
+						log.info(id + " 의 " + uppcode + " 상품 " + currentUpp.getAvailableday() + "기간 만료");
 
 						if (isUse) {
 							int usedSeatnum = seatmapper.selectSeatById(id).getSeatnum();
 
-							usermapper.checkOutCurrentUse(id);                                   // 미입실 상태로 변경.
 							seatmapper.checkOutSeat(usedSeatnum, id, uppcode);                   // 사용중인 자리 자동 체크아웃
 
 							log.info("입실 취소해버리기~ 상품 만료 후 날려버릴 씻넘 : " + usedSeatnum);
@@ -260,7 +258,7 @@ public class UserPurchasedProductServiceImpl implements UserPurchasedProductServ
 	} // 전체 메소드
 
 	@Override // 지정된 날짜에 자동 작동하며 시간 차감 시작함==========================================================================
-	public void afterManageDayPassFromStartDate(String id, String purchasedUppcode, LocalDateTime startDateTime, String pType) {
+	public void afterCalculateDayPassFromStartDate(String id, String purchasedUppcode, LocalDateTime startDateTime) {
 		try {
 			String cronStartDateTime = String.format("%d %d %d %d %d ?", startDateTime.getSecond(), startDateTime.getMinute(), startDateTime.getHour(), startDateTime.getDayOfMonth(), startDateTime.getMonthValue());
 

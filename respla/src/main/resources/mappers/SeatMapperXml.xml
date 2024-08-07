@@ -9,6 +9,14 @@
         SELECT * FROM seatlist
     </select>
     
+    <select id="selectSeat" resultType="com.res.pla.domain.SeatDTO" >
+        SELECT * FROM seatlist WHERE seatnum = #{seatnum}
+    </select>
+    
+    <select id="selectSeatById" resultType="com.res.pla.domain.SeatDTO" >
+        SELECT * FROM seatlist WHERE id = #{id}
+    </select>
+    
     <update id="checkInSeat" >
         update seatlist set occupied = true, id = #{id} , uppcode = #{uppcode} where seatnum = #{seatnum}
     </update>
@@ -17,17 +25,10 @@
         update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{usedSeatnum}
     </update>
     
-    <update id="moveSeat" >
-        update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{seatnum}
-    </update>
     
-    <select id="selectSeatById" resultType="com.res.pla.domain.SeatDTO" >
-        SELECT * FROM seatlist WHERE id = #{id}
-    </select>
+    
 
-    <select id="selectSeat" resultType="com.res.pla.domain.SeatDTO" >
-        SELECT * FROM seatlist WHERE seatnum = #{seatnum}
-    </select>
+    
 
     
     

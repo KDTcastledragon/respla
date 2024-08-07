@@ -85,68 +85,63 @@ public class SeatController {
 
 			int seatnum = seatdto.getSeatnum();
 			String id = seatdto.getId();
-			String uppcode = seatdto.getUppcode(); // 선택한 usedUppcode
-			log.info("또 어디야 씨이이발11111");
+			String uppcode = seatdto.getUppcode(); // 최종선택한 Uppcode
 
-			UserPurchasedProductDTO uppDto = uppservice.selectUppByUppcode(uppcode);
-			log.info("또 어디야 씨이이발2222222");
+			String uppPType = uppservice.selectUppByUppcode(uppcode).getPtype();
+			boolean uppIsUsable = uppservice.selectUppByUppcode(uppcode).isUsable();
 
-			UserPurchasedProductDTO inUsedUppAvoidDuplicate = (uppservice.selectInUsedUppOnlyThing(id) != null) ? uppservice.selectInUsedUppOnlyThing(id) : null;
-			log.info("inUsedUppAvoidDuplicate : " + inUsedUppAvoidDuplicate);
+			log.info("체크인 작업 전, Data확인 (num/id/ptype/upp) : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
-			log.info("체크인 처리 전 확인 num/id/ptype/upp : " + seatnum + " / " + id + " / " + uppDto.getPtype() + " / " + uppcode);
+			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
-			//====[체크인 작업 시작]=======================================================
-			UserDTO userDto = userservice.selectUser(id);
-			if (userDto.isCurrentuse()) {
+			if (isUserCheckined) {
+				log.info("이미 입실하였음");
 				return ResponseEntity.status(HttpStatus.CONFLICT).body("already CheckIn");
 
-			} else if (userDto.isCurrentuse() == false && uppcode != null && uppDto.isUsable() == true) { // 미입실 && uppcode존재 && upp사용가능
-				log.info("체크인 전 좌석정보 확인 : " + seatservice.selectSeat(seatnum));
+			} else if (isUserCheckined == false && uppcode != null && uppIsUsable == true) { // 미입실 && uppcode존재 && upp사용가능
+				log.info("미입실상태. 입실을 위한 상품 타입 검사 시작");
 
-				userservice.checkInCurrentUse(id);                  // 사용자 : '사용중'으로 전환
+				//===[1. 시간권으로 입실]======================================================================================================				
+				if (uppPType.equals("m")) {
+					log.info("상품타입 검사 : {}", uppPType);
+					UserPurchasedProductDTO usableDayPass = uppservice.selectCalculatedUpp(id); // 계산중인 upp상품 가져오기. 시간권 중복사용 방지를 위해.
 
-				seatservice.checkInSeat(seatnum, id, uppcode);      // 좌석: '사용중'으로 전환
-				uppservice.convertInUsed(id, uppcode, true);        // upp: '사용중'으로 전환
-
-				log.info("===========진입직전=============");
-				log.info("");
-
-				//==[시간권 사용하여 체크인.]==================================================
-				if (uppDto.getPtype().equals("m")) {                                              // 시간권 계산 (== "m"으로 하면 안된다.)
-					log.info("===========진입직전==2222");
-
-					//==[기간권 소유시, 시간권 중복 사용 방지.]
-					if (inUsedUppAvoidDuplicate != null && (inUsedUppAvoidDuplicate.getPtype().equals("d") || inUsedUppAvoidDuplicate.getPtype().equals("f"))) {
-						log.info("===========진입직전=============3333");
+					if (usableDayPass != null && (usableDayPass.getPtype().equals("d") || usableDayPass.getPtype().equals("f")) && usableDayPass.isUsable() == true) {
+						log.info("사용가능한 기간권 이미 보유중. 중복사용 차단.");
 						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Avoid Duplicate"); // 403
+
 					} else {
-						log.info("===========진입직전=========44444====");
-						uppservice.manageTimePass(id, uppcode, uppDto.getPtype());
-						log.info("m타입시 실행 : " + uppDto.getPtype());
+						log.info("사용가능한 기간권 보유하지 않음.");
+
+						seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
+
+						log.info("시간권 사용하여 체크인 성공");
 					}
 
 				}
+				//===[2. 기간권/고정석으로 입실]======================================================================================================
+				else if (uppPType.equals("d") || uppPType.equals("f")) {
+					log.info("상품타입 검사 : {}", uppPType);
 
-				//==[기간권,고정석 사용하여 체크인.]==================================================
-				else if (uppDto.getPtype().equals("d") || uppDto.getPtype().equals("f")) {      // 기간권,고정석 계산 (== "d/f" 으로 하면 안된다.) 
-					log.info("===========진입직전==========55555===");
-					log.info("d,f타입시 실행 : " + uppDto.getPtype());
+					seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
+
+					log.info("기간권 사용하여 체크인 성공");
 				}
 
-				log.info("체크인 마감 num/id/ptype/upp : " + seatnum + " / " + id + " / " + uppDto.getPtype() + " / " + uppcode);
+				log.info("체크인 성공 데이터 확인 : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
 				return ResponseEntity.ok().build();
 
-			} else if (uppcode == null) {                                         // React에서도 uppcode null 방지를 하지만, 입실관련 이므로 한번더 방지.
+			} else if (uppcode == null) {                             // react 에서도 방지하지만, 중요하므로 한번 더 체크.
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("none choosed Upp");
 
 			} else {
 				return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("etc");
 			}
+
 		} catch (Exception e) {
 			log.info("체크인 예외처리 : " + e.toString());
-			return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("CheckIn ERROR");
+			throw e;
 		}
 	}
 
@@ -155,25 +150,24 @@ public class SeatController {
 	public ResponseEntity<?> checkOut(@RequestBody SeatDTO seatdto) {
 		try {
 
-			log.info("체크아웃 dto : " + seatdto.toString());
+			log.info("체크아웃 요청 데이터 : " + seatdto.toString());
 
 			int usedSeatnum = seatdto.getSeatnum();
 			String id = seatdto.getId();
 			String usedUppcode = seatdto.getUppcode();
 
-			UserPurchasedProductDTO uppDto = uppservice.selectUppByUppcode(usedUppcode);
+			String uppPType = uppservice.selectUppByUppcode(usedUppcode).getPtype();
 
 			log.info("체크아웃! num/id/upp : " + usedSeatnum + " / " + id + " / " + usedUppcode);
 
-			//			=====[체크아웃 작업 시작]=========
-			UserDTO userDto = userservice.selectUser(id);
-			if (userDto.isCurrentuse()) {
-				userservice.checkOutCurrentUse(id);
+			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+
+			if (isUserCheckined) {
 				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode);
-				if (uppDto.getPtype().equals("m")) {                                              // 시간권 계산 (== "m"으로 하면 안된다.)
-					log.info("시간권 체크아웃 : " + uppDto.getPtype());
+				if (uppPType.equals("m")) {                                              // 시간권 계산 (== "m"으로 하면 안된다.)
+					log.info("시간권 체크아웃");
 					uppservice.convertInUsed(id, usedUppcode, false);
-					uppservice.stopCalculateUppInUsedTime();
+					uppservice.stopCalculateScheduler(uppPType);
 
 				} else if (uppDto.getPtype().equals("d") || uppDto.getPtype().equals("f")) {      // 기간권,고정석 계산 (== "d/f" 으로 하면 안된다.) 
 					//					uppservice.OperateUppInUsedTimeDay(id, uppcode);

@@ -15,9 +15,9 @@ public interface UserPurchasedProductService {
 
 	List<UserPurchasedProductDTO> selectAllUpps();
 
-	UserPurchasedProductDTO selectInUsedUppOnlyThing(String id);	    // 사용자가 현재 사용중인 상품 1개를 가져온다.
+	UserPurchasedProductDTO selectInUsedTrueUpp(String id);	    // 사용자가 현재 체크인 사용중 상품 1개를 가져온다.
 
-	UserPurchasedProductDTO selectCalculatedUpp(String id);			    //  현재 시간 / 기간이 차감중인 상품 1개를 가져온다.
+	UserPurchasedProductDTO selectCalculatedTrueUpp(String id);			    // 현재 시간 / 기간이 차감중인 상품 1개를 가져온다.
 
 	UserPurchasedProductDTO selectUppByUppcode(String uppcode);	        // 상품 1개를 가져온다.
 
@@ -30,15 +30,17 @@ public interface UserPurchasedProductService {
 
 	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-	//==[계산 / 중단 관련 메소드]====================================================================
+	//==[계산 중단 관련 메소드]====================================================================
 
-	void stopCalculateScheduler(String pType);
+	void stopCalculateTimePass(String id, String uppcode);
+
+	void endCalculateDayPass(String id, String uppcode);
 
 	//==[상품 계산 제어 메소드]====================================================================
-	void manageTimePass(String id, String uppcode, String pType);
+	void calculateTimePass(String id, String uppcode);
 
-	void afterManageDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime, String pType);
+	void calculateDayPass(String id, String uppcode);
 
-	void manageDayPass(String id, String uppcode, String pType);
+	void afterCalculateDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime);
 
 }
