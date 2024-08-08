@@ -54,7 +54,7 @@ public class SeatController {
 	@PostMapping(value = "/finalChooseProduct")
 	public ResponseEntity<?> finalChooseProduct(@RequestBody Map<String, String> choosedData) {
 		try {
-			log.info(choosedData);
+			log.info("입실 사용할 상품 :" + choosedData);
 
 			String id = choosedData.get("id");
 			String choosedpUppcode = choosedData.get("uppcode");
@@ -214,8 +214,7 @@ public class SeatController {
 			if (isUserCheckedIn == true && usedUppcode != null) {
 				log.info("체크인여부 , 사용upp 확인. 자리이동 작업 시작");
 
-				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
-				seatservice.checkInSeat(newSeatnum, id, usedUppcode, uppPType);
+				seatservice.moveSeat(usedSeatnum, newSeatnum, id, usedUppcode);
 				usgservice.recordAction(id, newSeatnum, "move", usedUppcode);
 				log.info("자리이동 성공");
 

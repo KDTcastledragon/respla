@@ -86,6 +86,10 @@
 	        where id = #{id} and uppcode = #{uppcode}
     </update>
     
+     <update id="clean" >
+        truncate table userpurchasedproduct
+    </update>
+    
     
   
   </mapper>

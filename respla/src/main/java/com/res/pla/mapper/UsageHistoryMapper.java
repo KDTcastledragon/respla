@@ -13,4 +13,6 @@ public interface UsageHistoryMapper {
 	List<UsageHistoryDTO> selectAllHistoryById(String id);
 
 	List<UsageHistoryDTO> selectAllHistoryByIdActionType(String id);
+
+	void clean();
 }

@@ -12,4 +12,6 @@ public interface UserService {
 
 	boolean matchId(String id);
 
+	void clean();
+
 }

@@ -110,25 +110,23 @@ public class UserController {
 			log.info("verifyUserStatus id확인 : " + id);
 
 			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id);
-			log.info("현재 유저 입실상태 확인 : " + isUserCheckedIn);
+			log.info("사용자 현재입실상태 : {} ", (isUserCheckedIn == true ? "입실중" : "미입실"));
 
 			if (isUserCheckedIn) {
-				log.info("유저입실상태 [입실 했음]");
 				return ResponseEntity.ok().build();  // 200
 
 			} else {
-				log.info("유저입실상태 [미입실] : " + isUserCheckedIn);
 
-				List<UserPurchasedProductDTO> usableUppDto = uppservice.selectAllUsableUppsById(id);
-				log.info("isCurrentUse:usableuppdto 확인 : " + usableUppDto.toString());
+				List<UserPurchasedProductDTO> usableUppList = uppservice.selectAllUsableUppsById(id);
+				log.info("사용가능한 상품 리스트 : " + usableUppList.toString());
 
-				if (usableUppDto.isEmpty()) {
-					log.info("usableUppDto_EMPTY : " + usableUppDto.toString());
-					return ResponseEntity.status(HttpStatus.NO_CONTENT).body("사용가능 상품 없음. 구매 필요."); // 204
+				if (usableUppList.isEmpty()) {
+					log.info("사용가능 상품 없음. 구매 필요. : " + usableUppList.toString());
+					return ResponseEntity.status(HttpStatus.NO_CONTENT).body("usableUppList_no_content_204"); // 204
 
 				} else {
-					log.info("usableUppDto_OCCUPIED : " + usableUppDto.toString());
-					return ResponseEntity.status(HttpStatus.ACCEPTED).body("사용가능상품 존재. 이용하면 됩니다."); // 202
+					log.info("사용가능상품 존재. 이용하면 됩니다. : " + usableUppList.toString());
+					return ResponseEntity.status(HttpStatus.ACCEPTED).body("usableUppList_aceepted_202"); // 202
 				}
 			}
 		} catch (Exception e) {
@@ -142,6 +140,17 @@ public class UserController {
 		List<UserDTO> userList = userservice.selectAllUsers();
 
 		return ResponseEntity.ok(userList);
+	}
+
+	//====[5. ]========================================================================================isCurrentUse
+	@GetMapping("/abcde")
+	public ResponseEntity<?> abcde() {
+		userservice.clean();
+		log.info("");
+		log.info("@@@@@@@@@@@@@쉬발 싹다 지워버려잇@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		log.info("");
+
+		return ResponseEntity.ok().build();
 	}
 
 }

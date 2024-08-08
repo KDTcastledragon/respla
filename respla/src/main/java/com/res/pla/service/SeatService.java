@@ -18,4 +18,6 @@ public interface SeatService {
 
 	boolean checkOutSeat(int usedSeatnum, String id, String usedUppcode, String pType);  // 오류 발생을 줄이기 위해 구분해서 만듦.
 
+	boolean moveSeat(int usedSeatnum, int newSeatnum, String id, String uppcode);
+
 }

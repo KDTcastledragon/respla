@@ -32,6 +32,10 @@
 	     <select id="selectAllHistoryByIdActionType" resultType="com.res.pla.domain.UsageHistoryDTO" >
 	        SELECT * FROM usagehistory where id = #{id}
 	    </select>
+	    
+	    <update id="clean" >
+       		truncate table usagehistory
+		</update>
 		
 	</mapper>
 	

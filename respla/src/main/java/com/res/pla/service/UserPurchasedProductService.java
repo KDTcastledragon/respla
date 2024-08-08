@@ -28,13 +28,15 @@ public interface UserPurchasedProductService {
 	//==[사용 전환 관련 메소드]====================================================================
 	boolean convertInUsed(String id, String uppcode, boolean inused);     // 사용중/미사용중 구분하는 inused Parameter
 
-	boolean convertCalculated(String id, String uppcode, boolean calculated);
+	//	boolean convertCalculated(String id, String uppcode, boolean calculated);
 
 	boolean convertUsable(String id, String uppcode, boolean usable);
 
 	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
 	//==[계산 중단 관련 메소드]====================================================================
+
+	boolean isSchedulerOperating(String id, String uppcode);
 
 	void stopCalculateTimePass(String id, String uppcode);
 

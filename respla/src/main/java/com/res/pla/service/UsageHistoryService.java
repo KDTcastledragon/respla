@@ -13,4 +13,5 @@ public interface UsageHistoryService {
 	List<UsageHistoryDTO> selectAllHistoryById(String id);
 
 	List<UsageHistoryDTO> selectAllHistoryByIdActionType(String id);
+
 }

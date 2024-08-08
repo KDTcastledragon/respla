@@ -38,4 +38,5 @@ public interface UserPurchasedProductMapper {
 
 	int realTimeCalculateUppDayPass(String id, String uppcode, int hour);      // 기간차감 계산
 
+	void clean();
 }

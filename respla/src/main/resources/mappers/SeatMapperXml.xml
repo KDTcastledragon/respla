@@ -29,6 +29,9 @@
         update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{usedSeatnum}
     </update>
     
+    <update id="clean" >
+        UPDATE seatlist SET occupied = false, id = null , uppcode = null
+    </update>
     
     
 </mapper>

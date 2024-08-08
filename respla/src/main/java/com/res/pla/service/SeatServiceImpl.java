@@ -89,4 +89,16 @@ public class SeatServiceImpl implements SeatService {
 		return true;
 	}
 
+	@Override
+	public boolean moveSeat(int usedSeatnum, int newSeatnum, String id, String uppcode) {
+		log.info("");
+
+		seatmapper.vacateSeat(usedSeatnum, id, uppcode);
+		seatmapper.occupySeat(newSeatnum, id, uppcode);
+
+		log.info("자리이동.");
+		log.info("");
+		return true;
+	}
+
 }

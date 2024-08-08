@@ -21,4 +21,5 @@ public interface SeatMapper {
 
 	int vacateSeat(int usedSeatnum, String id, String usedUppcode);
 
+	void clean();
 }
