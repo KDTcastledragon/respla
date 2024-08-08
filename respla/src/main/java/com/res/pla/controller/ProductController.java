@@ -37,6 +37,7 @@ public class ProductController {
 	@GetMapping("/productList")
 	public ResponseEntity<?> productList(@RequestParam(name = "ptype") String ptype) {
 		try {
+			log.info("");
 			log.info("productList_ptype 확인 : " + ptype);
 
 			List<ProductDTO> productList = productservice.selectPtypeProducts(ptype);
@@ -58,8 +59,8 @@ public class ProductController {
 	@PostMapping("/isDateConflict")
 	public ResponseEntity<?> isDateConflict(@RequestBody Map<String, Object> requestData) {
 		try {
-
-			log.info("상품구매 Data: " + requestData);
+			log.info("");
+			log.info("구매상품 요청 Data: " + requestData);
 
 			String id = (String) requestData.get("id");
 			String startDateTimeString = (String) requestData.get("startDateTime");
@@ -97,6 +98,7 @@ public class ProductController {
 	@PostMapping("/payment")
 	public ResponseEntity<?> payment(@RequestBody Map<String, Object> requestData) {
 		try {
+			log.info("");
 			log.info("상품결제 요청 Data: " + requestData);
 
 			String id = (String) requestData.get("id");

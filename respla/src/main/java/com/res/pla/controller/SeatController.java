@@ -94,13 +94,14 @@ public class SeatController {
 
 			log.info("체크인 작업 전, Data확인 (num/id/ptype/upp) : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
-			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			log.info("체크인여부 확인 : " + isUserCheckedIn);
 
-			if (isUserCheckined) {
+			if (isUserCheckedIn) {
 				log.info("이미 입실하였음");
 				return ResponseEntity.status(HttpStatus.CONFLICT).body("already CheckIn");  // 409
 
-			} else if (isUserCheckined == false && uppcode != null && uppIsUsable == true) { // 미입실 && uppcode존재 && upp사용가능
+			} else if (isUserCheckedIn == false && uppcode != null && uppIsUsable == true) { // 미입실 && uppcode존재 && upp사용가능
 				log.info("미입실상태. 입실을 위한 상품 타입 검사 시작");
 
 				//===[1. 시간권으로 입실]======================================================================================================				
@@ -115,27 +116,33 @@ public class SeatController {
 
 					} else {
 						log.info("사용가능한 기간권 보유하지 않음.");
+						log.info("시간권 사용하여 체크인 시도" + uppPType);
 
-						seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
-						log.info("시간권 사용하여 체크인 성공");
 					}
 
 				}
 				//===[2. 기간권/고정석으로 입실]======================================================================================================
 				else if (uppPType.equals("d") || uppPType.equals("f")) {
 					log.info("상품타입 검사 : {}", uppPType);
+					log.info("기간권 사용하여 체크인 시도 " + uppPType);
 
-					seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
-					log.info("기간권 사용하여 체크인 성공");
 				}
 
+				seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
+				usgservice.recordAction(id, seatnum, "in", uppcode);
 				log.info("체크인 성공 데이터 확인 : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
-				usgservice.recordAction(id, seatnum, "in", uppcode);
 				return ResponseEntity.ok().build();
 
-			} else if (uppcode == null) {                             // react 에서도 방지하지만, 중요하므로 한번 더 체크.
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("none choosed Upp");
+			} else if (uppIsUsable == false) {     // 체크인 시도 도중, 상품(기간권/고정석)의 기간이 모두 소모되어 입실이 불가능해진 상태.
+
+				log.info("사용불가능 상품. 재구매 필요.");
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("upp is Not Usable now"); // 422
+
+			} else if (uppcode == null) {
+
+				log.info("uppcode == null");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("etc");
 
 			} else {
 				return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("etc");
@@ -159,11 +166,11 @@ public class SeatController {
 
 			String uppPType = uppservice.selectUppByUppcode(usedUppcode).getPtype();
 
-			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
 			log.info("체크아웃 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
 
-			if (isUserCheckined == true && usedUppcode != null) {
+			if (isUserCheckedIn == true && usedUppcode != null) {
 				log.info("체크인여부 , 사용upp 확인. 체크아웃 작업 시작");
 
 				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
@@ -200,11 +207,11 @@ public class SeatController {
 
 			//			=====[자리이동 작업 시작]=========
 
-			boolean isUserCheckined = userservice.isCurrentUse(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
 			log.info("자리이동 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
 
-			if (isUserCheckined == true && usedUppcode != null) {
+			if (isUserCheckedIn == true && usedUppcode != null) {
 				log.info("체크인여부 , 사용upp 확인. 자리이동 작업 시작");
 
 				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);

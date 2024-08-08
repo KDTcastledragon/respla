@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.res.pla.domain.SeatDTO;
 import com.res.pla.domain.UserDTO;
 import com.res.pla.mapper.SeatMapper;
 import com.res.pla.mapper.UserMapper;
@@ -35,6 +34,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public boolean matchId(String id) {
 		try {
+			log.info("");
 
 			UserDTO userid = usermapper.selectUser(id);
 
@@ -49,26 +49,6 @@ public class UserServiceImpl implements UserService {
 			}
 		} catch (Exception e) {
 			log.info("아이디일치검사 예외처리 : " + e.toString());
-			return false;
-		}
-	}
-
-	@Override
-	public boolean isCurrentUse(String id) {
-		try {
-			SeatDTO usedSeatByUser = seatmapper.selectSeatById(id);
-
-			if (usedSeatByUser != null) {
-				log.info("입실여부검사 : 입실중 " + usedSeatByUser.toString());
-				return true;
-
-			} else {
-				log.info("입실여부 검사 : 미입실");
-				return false;
-			}
-
-		} catch (Exception e) {
-			log.info("입실여부 판별 예외처리" + e.toString());
 			return false;
 		}
 	}

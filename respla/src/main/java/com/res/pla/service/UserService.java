@@ -12,6 +12,4 @@ public interface UserService {
 
 	boolean matchId(String id);
 
-	boolean isCurrentUse(String id); // upp를 사용하지 않고 입실이 되는 경우는, seatService에서 미리 방지할 것이다.
-
 }

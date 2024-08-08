@@ -12,6 +12,8 @@ public interface SeatService {
 
 	SeatDTO selectSeatById(String id);
 
+	boolean isUserCurrentlyCheckedIn(String id);
+
 	boolean checkInSeat(int seatnum, String id, String uppcode, String pType);   // 오류 발생을 줄이기 위해 구분해서 만듦.
 
 	boolean checkOutSeat(int usedSeatnum, String id, String usedUppcode, String pType);  // 오류 발생을 줄이기 위해 구분해서 만듦.

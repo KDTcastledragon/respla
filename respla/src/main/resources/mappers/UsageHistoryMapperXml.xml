@@ -5,27 +5,18 @@
 	
 	<mapper namespace="com.res.pla.mapper.UsageHistoryMapper">
 	
-	   	<insert id="recordAction" parameterType="map" keyProperty="uppcode">
+	   	<insert id="recordAction" keyProperty="uhcode">
 	   		<selectKey keyProperty="uhcode" resultType="String" order="BEFORE">
-        	select concat(#{id}, #{productcode}, (SELECT ptype FROM product WHERE productcode = #{productcode}),
-                      substring(date_format(now(), '%Y%m%d%H%i%s'), 3)) AS uppcode
+        	select concat(#{id}, substring(date_format(now(), '%Y%m%d%H%i%s'), 3), #{seatNum} , #{actionType} ) AS uhcode
    		 	</selectKey>
-			insert into userpurchasedproduct(uppcode , id , productcode , ptype , initialtimevalue , availabletime ,
-			startdate , initialdayvalue , availableday , enddate , price , usable , payment)
+   		 	
+			insert into usagehistory(uhcode, id, seatnum, actiontype, uppcode)
 			values(
-			#{uppcode},
+			#{uhcode},
 			#{id},
-			#{productcode},
-			(select ptype from product where productcode=#{productcode}),
-			(select timevalue from product where productcode=#{productcode}),
-			(select timevalue from product where productcode=#{productcode}),
-			#{startDateTime},
-			(select dayvalue from product where productcode=#{productcode}),
-			(select dayvalue from product where productcode=#{productcode}),
-			#{endDateTime},
-			(select price from product where productcode=#{productcode}),
-			#{usable},
-			#{paymentOption}
+			#{seatNum},
+			#{actionType},
+			#{uppcode}
 		);
 		</insert>
 		

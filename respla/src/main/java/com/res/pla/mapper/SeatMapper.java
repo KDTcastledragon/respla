@@ -15,6 +15,8 @@ public interface SeatMapper {
 
 	SeatDTO selectSeat(int seatnum);
 
+	boolean isUserCurrentlyCheckedIn(String id);
+
 	int occupySeat(int seatnum, String id, String uppcode);
 
 	int vacateSeat(int usedSeatnum, String id, String usedUppcode);

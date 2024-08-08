@@ -41,7 +41,6 @@ public class UserController {
 		UserDTO dto = userservice.selectUser(id);
 
 		if (dto != null && userservice.matchId(id) == true) {
-
 			log.info("login 성공" + dto.toString());
 
 			return new ResponseEntity<>(dto, HttpStatus.OK);
@@ -63,13 +62,13 @@ public class UserController {
 			log.info("loginedUser_idData 조회 : " + idData);
 
 			String id = idData.get("id");
-			boolean isUserCheckined = userservice.isCurrentUse(id);
+			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인
 
 			Map<String, Object> loginedUserData = new HashMap<>();
 			loginedUserData.put("getedId", id);
-			loginedUserData.put("isCurrentUse", isUserCheckined);
+			loginedUserData.put("isCurrentUse", isUserCheckedIn);
 
-			if (isUserCheckined) {
+			if (isUserCheckedIn) {
 				int usedSeatNum = seatservice.selectSeatById(id).getSeatnum();
 				UserPurchasedProductDTO upp = uppservice.selectInUsedTrueUpp(id);
 
@@ -110,16 +109,15 @@ public class UserController {
 			String id = loginID.getId();
 			log.info("verifyUserStatus id확인 : " + id);
 
-			boolean isUserCheckined = userservice.isCurrentUse(id);
+			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id);
+			log.info("현재 유저 입실상태 확인 : " + isUserCheckedIn);
 
-			log.info("현재 유저 입실상태 확인 : " + isUserCheckined);
-
-			if (isUserCheckined) {
+			if (isUserCheckedIn) {
 				log.info("유저입실상태 [입실 했음]");
 				return ResponseEntity.ok().build();  // 200
 
 			} else {
-				log.info("유저입실상태 [미입실] : " + isUserCheckined);
+				log.info("유저입실상태 [미입실] : " + isUserCheckedIn);
 
 				List<UserPurchasedProductDTO> usableUppDto = uppservice.selectAllUsableUppsById(id);
 				log.info("isCurrentUse:usableuppdto 확인 : " + usableUppDto.toString());

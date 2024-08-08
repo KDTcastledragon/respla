@@ -19,21 +19,26 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
 
 	@Override
 	public int recordAction(String id, int seatNum, String actionType, String uppcode) {
+		log.info("");
 		return usgmapper.recordAction(id, seatNum, actionType, uppcode);
 	}
 
 	@Override
 	public List<UsageHistoryDTO> selectAllHistory() {
+		log.info("");
 		return usgmapper.selectAllHistory();
 	}
 
 	@Override
 	public List<UsageHistoryDTO> selectAllHistoryById(String id) {
+		log.info("");
+
 		return usgmapper.selectAllHistoryById(id);
 	}
 
 	@Override
 	public List<UsageHistoryDTO> selectAllHistoryByIdActionType(String id) {
+		log.info("");
 		return usgmapper.selectAllHistoryByIdActionType(id);
 	}
 

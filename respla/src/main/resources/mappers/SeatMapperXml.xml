@@ -6,15 +6,19 @@
 <mapper namespace="com.res.pla.mapper.SeatMapper">
 
 	<select id="presentAllSeats" resultType="com.res.pla.domain.SeatDTO">
-        SELECT * FROM seatlist
+        select * from seatlist
     </select>
     
     <select id="selectSeat" resultType="com.res.pla.domain.SeatDTO" >
-        SELECT * FROM seatlist WHERE seatnum = #{seatnum}
+        select * from seatlist where seatnum = #{seatnum}
     </select>
     
     <select id="selectSeatById" resultType="com.res.pla.domain.SeatDTO" >
-        SELECT * FROM seatlist WHERE id = #{id}
+        select * from seatlist where id = #{id}
+    </select>
+    
+    <select id="isUserCurrentlyCheckedIn" resultType="boolean" >
+        select count(*) > 0 from seatlist where id = #{id}
     </select>
     
     <update id="occupySeat" >
@@ -25,5 +29,6 @@
         update seatlist set occupied = false, id = null , uppcode = null where seatnum = #{usedSeatnum}
     </update>
     
-
+    
+    
 </mapper>

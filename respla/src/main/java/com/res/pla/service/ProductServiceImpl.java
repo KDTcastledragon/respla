@@ -32,6 +32,8 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public String purchaseProduct(String id, int productcode, String pType, LocalDateTime startDateTime, LocalDateTime endDateTime, String paymentOption, boolean usable) {
+		log.info("");
+		log.info("상품 구매 service 작동중");
 
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", id);
@@ -43,6 +45,8 @@ public class ProductServiceImpl implements ProductService {
 
 		productmapper.purchaseProduct(params);
 		productmapper.updateSellCount(productcode, 1);
+
+		log.info("상품 구매 service 성공");
 
 		// 여기에서 params에 의해 설정된 uppcode 값을 가져온다.
 		return (String) params.get("uppcode");
