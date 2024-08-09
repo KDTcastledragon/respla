@@ -45,8 +45,6 @@ public class SeatServiceImpl implements SeatService {
 	@Override
 	public boolean isUserCurrentlyCheckedIn(String id) {
 		log.info("");
-		log.info("사용자 입실여부 판별 위해, seatmapper 가동준비");
-		log.info("");
 		return seatmapper.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 	}
 
@@ -58,12 +56,10 @@ public class SeatServiceImpl implements SeatService {
 		int convertResult = uppmapper.convertInUsed(id, uppcode, true);
 
 		if (pType.equals("m")) {
-			log.info("시간권 체크인. 시간계산 진입 준비");
 			uppservice.calculateTimePass(id, uppcode);
 		}
 
 		log.info("");
-
 		return occupiedSeatRows > 0;
 	}
 
@@ -75,17 +71,13 @@ public class SeatServiceImpl implements SeatService {
 
 		if (pType.equals("m")) {
 			seatmapper.vacateSeat(usedSeatnum, id, usedUppcode);
-			log.info("시간권 체크아웃. 시간계산 중단 진입 준비");
-
 			uppservice.stopCalculateTimePass(id, usedUppcode);
 
 		} else if (pType.equals("d")) {
 			seatmapper.vacateSeat(usedSeatnum, id, usedUppcode);
-			log.info("기간권 체크아웃.");
 		}
 
 		log.info("");
-
 		return true;
 	}
 
@@ -96,7 +88,6 @@ public class SeatServiceImpl implements SeatService {
 		seatmapper.vacateSeat(usedSeatnum, id, uppcode);
 		seatmapper.occupySeat(newSeatnum, id, uppcode);
 
-		log.info("자리이동.");
 		log.info("");
 		return true;
 	}

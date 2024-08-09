@@ -11,6 +11,8 @@ import com.res.pla.domain.ProductDTO;
 public interface ProductMapper {
 	List<ProductDTO> selectPtypeProducts(String ptype);
 
+	List<ProductDTO> selectAllProducts();
+
 	ProductDTO selectProduct(int productcode);
 
 	void purchaseProduct(Map<String, Object> params);

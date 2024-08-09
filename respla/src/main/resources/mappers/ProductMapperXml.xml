@@ -9,6 +9,10 @@
 	        SELECT * FROM product where ptype = #{ptype}
 	    </select>
 	    
+	     <select id="selectAllProducts" resultType="com.res.pla.domain.ProductDTO" >
+	        SELECT * FROM product
+	    </select>
+	    
 	    <select id="selectProduct" resultType="com.res.pla.domain.ProductDTO" >
 	        SELECT * FROM product WHERE productcode = #{productcode}
 	    </select>

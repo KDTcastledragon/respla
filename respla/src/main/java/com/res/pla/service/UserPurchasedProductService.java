@@ -47,6 +47,8 @@ public interface UserPurchasedProductService {
 
 	void calculateDayPass(String id, String uppcode);
 
-	void afterCalculateDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime);
+	void validateTimePassBeforeCalculateDayPass(String id, String uppcode);
+
+	void afterLaunchDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime);
 
 }

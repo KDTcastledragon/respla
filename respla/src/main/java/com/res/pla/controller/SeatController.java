@@ -175,8 +175,8 @@ public class SeatController {
 
 				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
 				usgservice.recordAction(id, usedSeatnum, "out", usedUppcode);
-				log.info("체크아웃 성공");
 
+				log.info("체크아웃 성공");
 				return ResponseEntity.ok().build();
 
 			} else {
@@ -216,8 +216,8 @@ public class SeatController {
 
 				seatservice.moveSeat(usedSeatnum, newSeatnum, id, usedUppcode);
 				usgservice.recordAction(id, newSeatnum, "move", usedUppcode);
-				log.info("자리이동 성공");
 
+				log.info("자리이동 성공");
 				return ResponseEntity.ok().build();
 
 			} else {

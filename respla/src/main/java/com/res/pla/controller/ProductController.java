@@ -18,6 +18,7 @@ import com.res.pla.service.ProductService;
 import com.res.pla.service.SeatService;
 import com.res.pla.service.UserPurchasedProductService;
 import com.res.pla.service.UserService;
+import com.res.pla.util.Fdate;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -34,8 +35,8 @@ public class ProductController {
 	SeatService seatservice;
 
 	//=[1]==============================================================================
-	@GetMapping("/productList")
-	public ResponseEntity<?> productList(@RequestParam(name = "ptype") String ptype) {
+	@GetMapping("/productListByPType")
+	public ResponseEntity<?> productListByPType(@RequestParam(name = "ptype") String ptype) {
 		try {
 			log.info("");
 			log.info("productList_ptype 확인 : " + ptype);
@@ -70,7 +71,7 @@ public class ProductController {
 			LocalDateTime endDateTime = (endDateTimeString == null) ? null : LocalDateTime.parse(endDateTimeString); // 시작날짜 타입변환
 
 			if (startDateTime != null && endDateTime != null) {                                                                     // null Exception 처리.
-				log.info("시작일 ~ 종료일 : " + startDateTime + " ~ " + endDateTime);
+				log.info("시작일 ~ 종료일 :: {} ~ {} ", Fdate.chg(startDateTime), Fdate.chg(endDateTime));
 
 				boolean isDateConflictResult = uppservice.isDateConflict(id, startDateTime, endDateTime);    // 날짜 충돌 여부 검사
 				log.info("날짜충돌검사 결과 : " + isDateConflictResult);
@@ -82,6 +83,9 @@ public class ProductController {
 					log.info("종료날짜와 다른 상품의 시작날짜가 겹침. 409");
 					return ResponseEntity.status(HttpStatus.CONFLICT).body("isDateConflict"); // 409 Conflict
 				}
+
+			} else if (startDateTime == null && endDateTime == null) {
+				return ResponseEntity.ok().build(); // 잠깐만 쓰자 ㅎ
 
 			} else {
 				// startDateTime && endDateTime == null (시작/종료날짜가 존재하지 않음)
@@ -114,7 +118,7 @@ public class ProductController {
 			//==[1. 기간권 , 고정석 상품 구매]==================================================
 			if ((pType.equals("d") || pType.equals("f")) && (startDateTime != null && endDateTime != null)) {
 				LocalDateTime currentDateTime = LocalDateTime.now();        // 현재 시간.
-				log.info("기간권 시작일 ~ 종료일 : " + startDateTime + " ~ " + endDateTime);
+				log.info("시작일 ~ 종료일 :: {} ~ {} ", Fdate.chg(startDateTime), Fdate.chg(endDateTime));
 
 				String purchasedUppcode = productservice.purchaseProduct(id, productcode, pType, startDateTime, endDateTime, paymentOption, false);
 				log.info("기간권 구매 성공 (uppcode) : " + purchasedUppcode);
@@ -123,7 +127,7 @@ public class ProductController {
 				if (startDateTime.isAfter(currentDateTime)) {
 					log.info("1-1. 시작날짜가 구매날짜보다 뒤일때 (예약구매) ");
 
-					uppservice.afterCalculateDayPassFromStartDate(id, purchasedUppcode, startDateTime);
+					uppservice.afterLaunchDayPassFromStartDate(id, purchasedUppcode, startDateTime);
 					log.info("예약구매 확인 : " + id + purchasedUppcode + startDateTime);
 				}
 
@@ -131,7 +135,7 @@ public class ProductController {
 				else {
 					log.info("1-2. 시작날짜가 구매날짜보다 전이거나 같을때 (구매 즉시 사용가능)");
 					uppservice.convertUsable(id, purchasedUppcode, true);
-					uppservice.calculateDayPass(id, purchasedUppcode);
+					uppservice.validateTimePassBeforeCalculateDayPass(id, purchasedUppcode);
 				}
 
 				return ResponseEntity.ok().build();
@@ -155,21 +159,19 @@ public class ProductController {
 		} // try-catch
 	} // 전체 메소드
 
-	////		 =======[??]===================================================================================================
-	//		public ResponseEntity<?> selectProduct(int productcode) {
-	//			try {
-	//				List<ProductDTO> productLists = productservice.selectAllProducts();
-	//				
-	//				log.info("seatList성공 : " + productservice);
-	//				
-	//				return ResponseEntity.ok(productLists);
-	//			} catch (Exception e) {
-	//				
-	//				log.info("seatList[info] 오류발생 : " + e.toString());
-	//				log.error("seatList[error] 오류내용"+ e.toString());
-	//				return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("seat ERROR");
-	//			}
-	//		}
-	//		 
+	@GetMapping("/allProductList")
+	public ResponseEntity<?> allProductList() {
+		try {
+			List<ProductDTO> productList = productservice.selectAllProducts();
+
+			return ResponseEntity.ok().body(productList);
+
+		} catch (Exception e) {
+
+			log.info("productList 오류발생 : " + e.toString());
+			throw e;
+
+		}
+	}
 
 }

@@ -46,10 +46,13 @@ public class ProductServiceImpl implements ProductService {
 		productmapper.purchaseProduct(params);
 		productmapper.updateSellCount(productcode, 1);
 
-		log.info("상품 구매 service 성공");
-
 		// 여기에서 params에 의해 설정된 uppcode 값을 가져온다.
 		return (String) params.get("uppcode");
+	}
+
+	@Override
+	public List<ProductDTO> selectAllProducts() {
+		return productmapper.selectAllProducts();
 	}
 
 	//	================================================================================
