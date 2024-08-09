@@ -17,7 +17,7 @@
         select * from seatlist where id = #{id}
     </select>
     
-    <select id="isUserCurrentlyCheckedIn" resultType="boolean" >
+    <select id="isExistOccupiedSeatByUserId" resultType="boolean" >
         select count(*) > 0 from seatlist where id = #{id}
     </select>
     

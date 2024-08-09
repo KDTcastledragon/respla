@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.res.pla.domain.SeatDTO;
 import com.res.pla.domain.UserPurchasedProductDTO;
+import com.res.pla.service.SeatFacade;
 import com.res.pla.service.SeatService;
 import com.res.pla.service.UsageHistoryService;
 import com.res.pla.service.UserPurchasedProductService;
@@ -27,6 +28,7 @@ import lombok.extern.log4j.Log4j2;
 @AllArgsConstructor
 public class SeatController {
 
+	SeatFacade seatfacade;
 	SeatService seatservice;
 	UserService userservice;
 	UserPurchasedProductService uppservice;
@@ -94,7 +96,7 @@ public class SeatController {
 
 			log.info("체크인 작업 전, Data확인 (num/id/ptype/upp) : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
-			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatfacade.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 			log.info("체크인여부 확인 : " + isUserCheckedIn);
 
 			if (isUserCheckedIn) {
@@ -128,8 +130,7 @@ public class SeatController {
 
 				}
 
-				seatservice.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
-				usgservice.recordAction(id, seatnum, "in", uppcode);
+				seatfacade.checkInSeat(seatnum, id, uppcode, uppPType);      // 체크인
 				log.info("체크인 성공 데이터 확인 : " + seatnum + " / " + id + " / " + uppPType + " / " + uppcode);
 
 				return ResponseEntity.ok().build();
@@ -166,15 +167,14 @@ public class SeatController {
 
 			String uppPType = uppservice.selectUppByUppcode(usedUppcode).getPtype();
 
-			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatfacade.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
 			log.info("체크아웃 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
 
 			if (isUserCheckedIn == true && usedUppcode != null) {
 				log.info("체크인여부 , 사용upp 확인. 체크아웃 작업 시작");
 
-				seatservice.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
-				usgservice.recordAction(id, usedSeatnum, "out", usedUppcode);
+				seatfacade.checkOutSeat(usedSeatnum, id, usedUppcode, uppPType);
 
 				log.info("체크아웃 성공");
 				return ResponseEntity.ok().build();
@@ -207,15 +207,14 @@ public class SeatController {
 
 			//			=====[자리이동 작업 시작]=========
 
-			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+			boolean isUserCheckedIn = seatfacade.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 
 			log.info("자리이동 작업 전, Data확인 (num/id/ptype/upp) : " + usedSeatnum + " / " + id + " / " + uppPType + " / " + usedUppcode);
 
 			if (isUserCheckedIn == true && usedUppcode != null) {
 				log.info("체크인여부 , 사용upp 확인. 자리이동 작업 시작");
 
-				seatservice.moveSeat(usedSeatnum, newSeatnum, id, usedUppcode);
-				usgservice.recordAction(id, newSeatnum, "move", usedUppcode);
+				seatfacade.moveSeat(usedSeatnum, newSeatnum, id, usedUppcode);
 
 				log.info("자리이동 성공");
 				return ResponseEntity.ok().build();

@@ -134,7 +134,6 @@ public class ProductController {
 				//==[1-2. 시작날짜가 구매날짜보다 전이거나 같을때 (구매 즉시 사용가능) ]============================
 				else {
 					log.info("1-2. 시작날짜가 구매날짜보다 전이거나 같을때 (구매 즉시 사용가능)");
-					uppservice.convertUsable(id, purchasedUppcode, true);
 					uppservice.validateTimePassBeforeCalculateDayPass(id, purchasedUppcode);
 				}
 

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.res.pla.domain.UserDTO;
 import com.res.pla.domain.UserPurchasedProductDTO;
+import com.res.pla.service.SeatFacade;
 import com.res.pla.service.SeatService;
 import com.res.pla.service.UserPurchasedProductService;
 import com.res.pla.service.UserService;
@@ -30,6 +31,7 @@ public class UserController {
 	UserPurchasedProductService uppservice;
 	UserService userservice;
 	SeatService seatservice;
+	SeatFacade seatfacade;
 
 	//====[1. 로그인]========================================================================================
 	@PostMapping("/login")
@@ -62,7 +64,7 @@ public class UserController {
 			log.info("loginedUser_idData 조회 : " + idData);
 
 			String id = idData.get("id");
-			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id); // 입실 여부 확인
+			boolean isUserCheckedIn = seatfacade.isUserCheckedIn(id); // 입실 여부 확인
 
 			Map<String, Object> loginedUserData = new HashMap<>();
 			loginedUserData.put("getedId", id);
@@ -109,14 +111,13 @@ public class UserController {
 			String id = loginID.getId();
 			log.info("verifyUserStatus id확인 : " + id);
 
-			boolean isUserCheckedIn = seatservice.isUserCurrentlyCheckedIn(id);
+			boolean isUserCheckedIn = seatfacade.isUserCheckedIn(id); // 입실 여부 확인
 			log.info("사용자 현재입실상태 : {} ", (isUserCheckedIn == true ? "입실중" : "미입실"));
 
 			if (isUserCheckedIn) {
 				return ResponseEntity.ok().build();  // 200
 
 			} else {
-
 				List<UserPurchasedProductDTO> usableUppList = uppservice.selectAllUsableUppsById(id);
 				log.info("사용가능한 상품 리스트 : " + usableUppList.toString());
 

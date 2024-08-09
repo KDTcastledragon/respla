@@ -12,12 +12,12 @@ public interface SeatService {
 
 	SeatDTO selectSeatById(String id);
 
-	boolean isUserCurrentlyCheckedIn(String id);
+	boolean isExistOccupiedSeatByUserId(String id);
 
-	boolean checkInSeat(int seatnum, String id, String uppcode, String pType);   // 오류 발생을 줄이기 위해 구분해서 만듦.
+	int occupySeat(int seatnum, String id, String uppcode);
 
-	boolean checkOutSeat(int usedSeatnum, String id, String usedUppcode, String pType);  // 오류 발생을 줄이기 위해 구분해서 만듦.
+	int vacateSeat(int usedSeatnum, String id, String usedUppcode);
 
-	boolean moveSeat(int usedSeatnum, int newSeatnum, String id, String uppcode);
+	boolean shiftSeat(int usedSeatnum, int newSeatnum, String id, String uppcode);
 
 }

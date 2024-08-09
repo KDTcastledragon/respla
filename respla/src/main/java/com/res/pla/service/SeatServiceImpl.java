@@ -23,9 +23,6 @@ public class SeatServiceImpl implements SeatService {
 	@Autowired
 	UserPurchasedProductMapper uppmapper;
 
-	@Autowired
-	UserPurchasedProductService uppservice;
-
 	@Override
 	public List<SeatDTO> presentAllSeats() {
 		return seatmapper.presentAllSeats();
@@ -33,8 +30,7 @@ public class SeatServiceImpl implements SeatService {
 
 	@Override
 	public SeatDTO selectSeatById(String id) {
-		SeatDTO usedSeat = seatmapper.selectSeatById(id);
-		return usedSeat;
+		return seatmapper.selectSeatById(id);
 	}
 
 	@Override
@@ -43,53 +39,34 @@ public class SeatServiceImpl implements SeatService {
 	}
 
 	@Override
-	public boolean isUserCurrentlyCheckedIn(String id) {
+	public boolean isExistOccupiedSeatByUserId(String id) {
 		log.info("");
-		return seatmapper.isUserCurrentlyCheckedIn(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
+		return seatmapper.isExistOccupiedSeatByUserId(id); // 입실 여부 확인 // 중요한 작업이라 한번 더 확인함.
 	}
 
 	@Override
-	public boolean checkInSeat(int seatnum, String id, String uppcode, String pType) {
+	public int occupySeat(int seatnum, String id, String uppcode) {
 		log.info("");
-
-		int occupiedSeatRows = seatmapper.occupySeat(seatnum, id, uppcode);
-		int convertResult = uppmapper.convertInUsed(id, uppcode, true);
-
-		if (pType.equals("m")) {
-			uppservice.calculateTimePass(id, uppcode);
-		}
-
-		log.info("");
-		return occupiedSeatRows > 0;
+		return seatmapper.occupySeat(seatnum, id, uppcode);
 	}
 
 	@Override
-	public boolean checkOutSeat(int usedSeatnum, String id, String usedUppcode, String pType) {
+	public int vacateSeat(int usedSeatnum, String id, String usedUppcode) {
 		log.info("");
-
-		uppmapper.convertInUsed(id, usedUppcode, false);
-
-		if (pType.equals("m")) {
-			seatmapper.vacateSeat(usedSeatnum, id, usedUppcode);
-			uppservice.stopCalculateTimePass(id, usedUppcode);
-
-		} else if (pType.equals("d")) {
-			seatmapper.vacateSeat(usedSeatnum, id, usedUppcode);
-		}
-
-		log.info("");
-		return true;
+		return seatmapper.vacateSeat(usedSeatnum, id, usedUppcode);
 	}
 
 	@Override
-	public boolean moveSeat(int usedSeatnum, int newSeatnum, String id, String uppcode) {
+	public boolean shiftSeat(int usedSeatnum, int newSeatnum, String id, String uppcode) {
 		log.info("");
 
-		seatmapper.vacateSeat(usedSeatnum, id, uppcode);
-		seatmapper.occupySeat(newSeatnum, id, uppcode);
+		int isVacated = seatmapper.vacateSeat(usedSeatnum, id, uppcode);
+		int isOccupied = seatmapper.occupySeat(newSeatnum, id, uppcode);
+
+		boolean isShift = (isVacated > 0) && (isOccupied > 0);
 
 		log.info("");
-		return true;
+		return isShift;
 	}
 
 }

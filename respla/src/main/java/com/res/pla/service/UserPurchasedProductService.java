@@ -26,29 +26,28 @@ public interface UserPurchasedProductService {
 	UserPurchasedProductDTO selectUsableOneUppByIdPType(String id, String pType);
 
 	//==[사용 전환 관련 메소드]====================================================================
-	boolean convertInUsed(String id, String uppcode, boolean inused);     // 사용중/미사용중 구분하는 inused Parameter
-
-	//	boolean convertCalculated(String id, String uppcode, boolean calculated);
+	int convertInUsed(String id, String uppcode, boolean inused);     // 사용중/미사용중 구분하는 inused Parameter
 
 	boolean convertUsable(String id, String uppcode, boolean usable);
 
 	boolean isDateConflict(String id, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-	//==[계산 중단 관련 메소드]====================================================================
+	//==[시간 계산 관련]====================================================================
 
-	boolean isSchedulerOperating(String id, String uppcode);
+	void calculateTimePass(String id, String uppcode);
 
 	void stopCalculateTimePass(String id, String uppcode);
 
-	void endCalculateDayPass(String id, String uppcode);
-
-	//==[상품 계산 제어 메소드]====================================================================
-	void calculateTimePass(String id, String uppcode);
-
-	void calculateDayPass(String id, String uppcode);
+	//==[기간 계산 관련]====================================================================
 
 	void validateTimePassBeforeCalculateDayPass(String id, String uppcode);
 
 	void afterLaunchDayPassFromStartDate(String id, String uppcode, LocalDateTime startDateTime);
+
+	//	boolean convertCalculated(String id, String uppcode, boolean calculated);
+	//	void calculateDayPass(String id, String uppcode);
+	//	void endCalculateDayPass(String id, String uppcode);
+	//	boolean isSchedulerOperating(String id, String uppcode);
+	//	boolean shiftToNewPassFromExpiryPass(int usedUseatNum, String id);
 
 }
